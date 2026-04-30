@@ -10,6 +10,7 @@
     <string name="ask_open_confirmation">Запрашивать подтверждение открытия ссылки из списка</string>
     <string name="app_version_with_build">Версия: %1$s, сборка: %2$d</string>
     <string name="saved_links_title">Сохранённые ссылки</string>
+    <string name="empty_groups_title">Нет групп ссылок</string>
     <string name="empty_groups_message">Групп пока нет. Добавьте группу, чтобы сохранять ссылки.</string>
     <string name="empty_links_message">В группе пока нет ссылок.</string>
     <string name="add_group">Добавить группу</string>

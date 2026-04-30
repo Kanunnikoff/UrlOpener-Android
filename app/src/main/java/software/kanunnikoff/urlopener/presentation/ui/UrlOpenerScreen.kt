@@ -2,6 +2,7 @@ package software.kanunnikoff.urlopener.presentation.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -54,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -259,70 +263,107 @@ private fun HomeScreen(
     val listPadding = contentPadding.withAdditionalPadding(20.dp)
     var expandedGroupIds by rememberSaveable { mutableStateOf(emptySet<Long>()) }
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .consumeWindowInsets(contentPadding),
-        contentPadding = listPadding,
+            .consumeWindowInsets(contentPadding)
+            .padding(listPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            UrlInputBlock(
-                url = state.url,
-                onUrlChanged = onUrlChanged,
-                onClearClick = onClearClick,
-                onOpenClick = onOpenClick,
-                onSaveEnteredLinkClick = onSaveEnteredLinkClick,
-            )
-        }
+        UrlInputBlock(
+            url = state.url,
+            onUrlChanged = onUrlChanged,
+            onClearClick = onClearClick,
+            onOpenClick = onOpenClick,
+            onSaveEnteredLinkClick = onSaveEnteredLinkClick,
+        )
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.saved_links_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                TextButton(onClick = onAddGroupClick) {
-                    Text(stringResource(R.string.add_group))
-                }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.saved_links_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            TextButton(onClick = onAddGroupClick) {
+                Text(stringResource(R.string.add_group))
             }
         }
 
         if (state.groups.isEmpty()) {
-            item {
-                Text(
-                    text = stringResource(R.string.empty_groups_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            EmptyGroupsContent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(
+                    items = state.groups,
+                    key = { it.id },
+                ) { group ->
+                    val isExpanded = group.id in expandedGroupIds
+                    LinkGroupCard(
+                        group = group,
+                        isExpanded = isExpanded,
+                        onGroupClick = {
+                            expandedGroupIds = if (isExpanded) {
+                                expandedGroupIds - group.id
+                            } else {
+                                expandedGroupIds + group.id
+                            }
+                        },
+                        onEditGroupClick = onEditGroupClick,
+                        onRequestDeleteGroup = onRequestDeleteGroup,
+                        onAddLinkClick = onAddLinkClick,
+                        onEditLinkClick = onEditLinkClick,
+                        onRequestDeleteLink = onRequestDeleteLink,
+                        onSavedLinkClick = onSavedLinkClick,
+                    )
+                }
             }
         }
+    }
+}
 
-        items(
-            items = state.groups,
-            key = { it.id },
-        ) { group ->
-            val isExpanded = group.id in expandedGroupIds
-            LinkGroupCard(
-                group = group,
-                isExpanded = isExpanded,
-                onGroupClick = {
-                    expandedGroupIds = if (isExpanded) {
-                        expandedGroupIds - group.id
-                    } else {
-                        expandedGroupIds + group.id
-                    }
-                },
-                onEditGroupClick = onEditGroupClick,
-                onRequestDeleteGroup = onRequestDeleteGroup,
-                onAddLinkClick = onAddLinkClick,
-                onEditLinkClick = onEditLinkClick,
-                onRequestDeleteLink = onRequestDeleteLink,
-                onSavedLinkClick = onSavedLinkClick,
+@Composable
+private fun EmptyGroupsContent(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 20.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.LinkOff,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(72.dp),
+            )
+            Text(
+                text = stringResource(R.string.empty_groups_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(R.string.empty_groups_message),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
