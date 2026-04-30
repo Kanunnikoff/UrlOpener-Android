@@ -34,9 +34,15 @@ class UrlOpenerScreenTest {
                 UrlOpenerScreen(
                     state = state,
                     snackbarHostState = SnackbarHostState(),
+                    appVersionName = "1.0.0",
+                    appVersionCode = 1,
+                    onTabSelected = { state = state.copy(selectedTab = it) },
                     onUrlChanged = { state = state.copy(url = it) },
                     onClearClick = { state = state.copy(url = "") },
                     onOpenClick = {},
+                    onDeleteConfirmationChanged = {
+                        state = state.copy(shouldAskDeleteConfirmation = it)
+                    },
                 )
             }
         }

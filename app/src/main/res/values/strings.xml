@@ -3,4 +3,9 @@
     <string name="url_input_description">Ссылка</string>
     <string name="clear_button">Очистить</string>
     <string name="open_button">Открыть</string>
+    <string name="home_tab">Дом</string>
+    <string name="settings_tab">Настройки</string>
+    <string name="about_tab">О программе</string>
+    <string name="ask_delete_confirmation">Запрашивать подтверждение удаления ссылок</string>
+    <string name="app_version_with_build">Версия: %1$s, сборка: %2$d</string>
 </resources>
