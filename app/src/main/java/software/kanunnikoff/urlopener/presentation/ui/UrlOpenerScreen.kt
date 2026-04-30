@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
@@ -28,7 +30,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,16 +104,6 @@ fun UrlOpenerScreen(
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            if (state.selectedTab == UrlOpenerTab.Home) {
-                FloatingActionButton(onClick = onAddGroupClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.add_group),
-                    )
-                }
-            }
-        },
         bottomBar = {
             UrlOpenerNavigationBar(
                 selectedTab = state.selectedTab,
@@ -265,6 +257,7 @@ private fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val listPadding = contentPadding.withAdditionalPadding(20.dp)
+    var expandedGroupIds by rememberSaveable { mutableStateOf(emptySet<Long>()) }
 
     LazyColumn(
         modifier = modifier
@@ -313,8 +306,17 @@ private fun HomeScreen(
             items = state.groups,
             key = { it.id },
         ) { group ->
+            val isExpanded = group.id in expandedGroupIds
             LinkGroupCard(
                 group = group,
+                isExpanded = isExpanded,
+                onGroupClick = {
+                    expandedGroupIds = if (isExpanded) {
+                        expandedGroupIds - group.id
+                    } else {
+                        expandedGroupIds + group.id
+                    }
+                },
                 onEditGroupClick = onEditGroupClick,
                 onRequestDeleteGroup = onRequestDeleteGroup,
                 onAddLinkClick = onAddLinkClick,
@@ -397,6 +399,8 @@ private fun UrlInputBlock(
 @Composable
 private fun LinkGroupCard(
     group: LinkGroup,
+    isExpanded: Boolean,
+    onGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
     onAddLinkClick: (Long) -> Unit,
@@ -412,7 +416,9 @@ private fun LinkGroupCard(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onGroupClick),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -427,6 +433,15 @@ private fun LinkGroupCard(
                         )
                     }
                 }
+                Icon(
+                    imageVector = if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                    contentDescription = if (isExpanded) {
+                        stringResource(R.string.collapse_group)
+                    } else {
+                        stringResource(R.string.expand_group)
+                    },
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
                 IconButton(onClick = { onAddLinkClick(group.id) }) {
                     Icon(
                         imageVector = Icons.Outlined.Add,
@@ -447,17 +462,19 @@ private fun LinkGroupCard(
                 }
             }
 
-            if (group.links.isEmpty()) {
-                Text(text = stringResource(R.string.empty_links_message))
-            } else {
-                group.links.forEach { link ->
-                    SavedLinkRow(
-                        groupId = group.id,
-                        link = link,
-                        onEditLinkClick = onEditLinkClick,
-                        onRequestDeleteLink = onRequestDeleteLink,
-                        onSavedLinkClick = onSavedLinkClick,
-                    )
+            if (isExpanded) {
+                if (group.links.isEmpty()) {
+                    Text(text = stringResource(R.string.empty_links_message))
+                } else {
+                    group.links.forEach { link ->
+                        SavedLinkRow(
+                            groupId = group.id,
+                            link = link,
+                            onEditLinkClick = onEditLinkClick,
+                            onRequestDeleteLink = onRequestDeleteLink,
+                            onSavedLinkClick = onSavedLinkClick,
+                        )
+                    }
                 }
             }
         }
