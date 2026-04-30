@@ -12,6 +12,7 @@ data class UrlOpenerState(
     val groups: List<LinkGroup> = emptyList(),
     val groupEditor: GroupEditorState? = null,
     val linkEditor: LinkEditorState? = null,
+    val shouldShowGroupPicker: Boolean = false,
     val deleteTarget: DeleteTarget? = null,
     val openTarget: OpenTarget? = null,
 )

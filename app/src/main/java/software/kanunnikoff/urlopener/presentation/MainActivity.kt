@@ -1,8 +1,10 @@
 package software.kanunnikoff.urlopener.presentation
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.room.Room
@@ -54,6 +56,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         setContent {
             UrlOpenerTheme {
@@ -74,6 +80,9 @@ class MainActivity : ComponentActivity() {
                     onSaveGroup = viewModel::onSaveGroup,
                     onDismissGroupEditor = viewModel::onDismissGroupEditor,
                     onAddLinkClick = viewModel::onAddLinkClick,
+                    onSaveEnteredLinkClick = viewModel::onSaveEnteredLinkClick,
+                    onGroupPickedForEnteredLink = viewModel::onGroupPickedForEnteredLink,
+                    onDismissGroupPicker = viewModel::onDismissGroupPicker,
                     onEditLinkClick = viewModel::onEditLinkClick,
                     onRequestDeleteLink = viewModel::onRequestDeleteLink,
                     onSaveLink = viewModel::onSaveLink,

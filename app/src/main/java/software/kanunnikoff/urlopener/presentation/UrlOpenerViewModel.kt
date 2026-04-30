@@ -135,6 +135,28 @@ class UrlOpenerViewModel(
         _state.update { it.copy(linkEditor = LinkEditorState(groupId = groupId, url = it.url)) }
     }
 
+    fun onSaveEnteredLinkClick() {
+        val groups = _state.value.groups
+        when (groups.size) {
+            0 -> _state.update { it.copy(groupEditor = GroupEditorState()) }
+            1 -> onAddLinkClick(groups.first().id)
+            else -> _state.update { it.copy(shouldShowGroupPicker = true) }
+        }
+    }
+
+    fun onGroupPickedForEnteredLink(groupId: Long) {
+        _state.update {
+            it.copy(
+                shouldShowGroupPicker = false,
+                linkEditor = LinkEditorState(groupId = groupId, url = it.url),
+            )
+        }
+    }
+
+    fun onDismissGroupPicker() {
+        _state.update { it.copy(shouldShowGroupPicker = false) }
+    }
+
     fun onEditLinkClick(groupId: Long, link: SavedLink) {
         _state.update {
             it.copy(

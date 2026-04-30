@@ -18,6 +18,7 @@
     <string name="group_name">Имя группы</string>
     <string name="group_description">Описание группы</string>
     <string name="add_link">Добавить ссылку</string>
+    <string name="choose_group">Выберите группу</string>
     <string name="edit_link">Редактировать ссылку</string>
     <string name="delete_link">Удалить ссылку</string>
     <string name="link_name">Имя ссылки</string>

@@ -3,11 +3,17 @@ package software.kanunnikoff.urlopener.presentation.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,11 +49,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
@@ -77,6 +85,9 @@ fun UrlOpenerScreen(
     onSaveGroup: (String, String) -> Unit,
     onDismissGroupEditor: () -> Unit,
     onAddLinkClick: (Long) -> Unit,
+    onSaveEnteredLinkClick: () -> Unit,
+    onGroupPickedForEnteredLink: (Long) -> Unit,
+    onDismissGroupPicker: () -> Unit,
     onEditLinkClick: (Long, SavedLink) -> Unit,
     onRequestDeleteLink: (Long, Long) -> Unit,
     onSaveLink: (Long, String, String) -> Unit,
@@ -89,6 +100,7 @@ fun UrlOpenerScreen(
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             if (state.selectedTab == UrlOpenerTab.Home) {
@@ -114,6 +126,7 @@ fun UrlOpenerScreen(
                 onUrlChanged = onUrlChanged,
                 onClearClick = onClearClick,
                 onOpenClick = onOpenClick,
+                onSaveEnteredLinkClick = onSaveEnteredLinkClick,
                 onAddGroupClick = onAddGroupClick,
                 onEditGroupClick = onEditGroupClick,
                 onRequestDeleteGroup = onRequestDeleteGroup,
@@ -121,7 +134,7 @@ fun UrlOpenerScreen(
                 onEditLinkClick = onEditLinkClick,
                 onRequestDeleteLink = onRequestDeleteLink,
                 onSavedLinkClick = onSavedLinkClick,
-                modifier = Modifier.padding(paddingValues),
+                contentPadding = paddingValues,
             )
 
             UrlOpenerTab.Settings -> SettingsScreen(
@@ -129,13 +142,17 @@ fun UrlOpenerScreen(
                 shouldAskOpenConfirmation = state.shouldAskOpenConfirmation,
                 onDeleteConfirmationChanged = onDeleteConfirmationChanged,
                 onOpenConfirmationChanged = onOpenConfirmationChanged,
-                modifier = Modifier.padding(paddingValues),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .consumeWindowInsets(paddingValues),
             )
 
             UrlOpenerTab.About -> AboutScreen(
                 appVersionName = appVersionName,
                 appVersionCode = appVersionCode,
-                modifier = Modifier.padding(paddingValues),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .consumeWindowInsets(paddingValues),
             )
         }
     }
@@ -153,6 +170,14 @@ fun UrlOpenerScreen(
             editor = editor,
             onSaveLink = onSaveLink,
             onDismiss = onDismissLinkEditor,
+        )
+    }
+
+    if (state.shouldShowGroupPicker) {
+        GroupPickerDialog(
+            groups = state.groups,
+            onGroupPicked = onGroupPickedForEnteredLink,
+            onDismiss = onDismissGroupPicker,
         )
     }
 
@@ -228,6 +253,7 @@ private fun HomeScreen(
     onUrlChanged: (String) -> Unit,
     onClearClick: () -> Unit,
     onOpenClick: () -> Unit,
+    onSaveEnteredLinkClick: () -> Unit,
     onAddGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
@@ -235,12 +261,16 @@ private fun HomeScreen(
     onEditLinkClick: (Long, SavedLink) -> Unit,
     onRequestDeleteLink: (Long, Long) -> Unit,
     onSavedLinkClick: (Long, Long) -> Unit,
+    contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
+    val listPadding = contentPadding.withAdditionalPadding(20.dp)
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .consumeWindowInsets(contentPadding),
+        contentPadding = listPadding,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
@@ -249,6 +279,7 @@ private fun HomeScreen(
                 onUrlChanged = onUrlChanged,
                 onClearClick = onClearClick,
                 onOpenClick = onOpenClick,
+                onSaveEnteredLinkClick = onSaveEnteredLinkClick,
             )
         }
 
@@ -296,12 +327,26 @@ private fun HomeScreen(
 }
 
 @Composable
+private fun PaddingValues.withAdditionalPadding(all: Dp): PaddingValues {
+    val layoutDirection = LocalLayoutDirection.current
+    return PaddingValues(
+        start = calculateStartPadding(layoutDirection) + all,
+        top = calculateTopPadding() + all,
+        end = calculateEndPadding(layoutDirection) + all,
+        bottom = calculateBottomPadding() + all,
+    )
+}
+
+@Composable
 private fun UrlInputBlock(
     url: String,
     onUrlChanged: (String) -> Unit,
     onClearClick: () -> Unit,
     onOpenClick: () -> Unit,
+    onSaveEnteredLinkClick: () -> Unit,
 ) {
+    val hasUrl = url.isNotBlank()
+
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -309,24 +354,41 @@ private fun UrlInputBlock(
             value = url,
             onValueChange = onUrlChanged,
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+            minLines = 3,
+            maxLines = 3,
             label = { Text(stringResource(R.string.url_input_description)) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Done,
+                imeAction = ImeAction.Default,
             ),
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(onClick = onClearClick) {
+            Button(
+                enabled = hasUrl,
+                onClick = onClearClick,
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(stringResource(R.string.clear_button))
             }
 
-            Button(onClick = onOpenClick) {
+            Button(
+                enabled = hasUrl,
+                onClick = onOpenClick,
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(stringResource(R.string.open_button))
+            }
+
+            Button(
+                enabled = hasUrl,
+                onClick = onSaveEnteredLinkClick,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.save_button))
             }
         }
     }
@@ -526,6 +588,8 @@ private fun GroupEditorDialog(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text(stringResource(R.string.group_description)) },
+                    minLines = 3,
+                    maxLines = 3,
                 )
             }
         },
@@ -593,6 +657,33 @@ private fun LinkEditorDialog(
                 Text(stringResource(R.string.save_button))
             }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel_button))
+            }
+        },
+    )
+}
+
+@Composable
+private fun GroupPickerDialog(
+    groups: List<LinkGroup>,
+    onGroupPicked: (Long) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.choose_group)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                groups.forEach { group ->
+                    TextButton(onClick = { onGroupPicked(group.id) }) {
+                        Text(group.name)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel_button))
@@ -693,6 +784,9 @@ private fun UrlOpenerScreenPreview() {
             onSaveGroup = { _, _ -> },
             onDismissGroupEditor = {},
             onAddLinkClick = {},
+            onSaveEnteredLinkClick = {},
+            onGroupPickedForEnteredLink = {},
+            onDismissGroupPicker = {},
             onEditLinkClick = { _, _ -> },
             onRequestDeleteLink = { _, _ -> },
             onSaveLink = { _, _, _ -> },
