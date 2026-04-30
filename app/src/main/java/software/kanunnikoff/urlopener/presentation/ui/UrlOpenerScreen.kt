@@ -504,10 +504,11 @@ private fun LinkGroupCard(
             }
 
             if (isExpanded) {
+                HorizontalDivider()
                 if (group.links.isEmpty()) {
                     Text(text = stringResource(R.string.empty_links_message))
                 } else {
-                    group.links.forEach { link ->
+                    group.links.forEachIndexed { index, link ->
                         SavedLinkRow(
                             groupId = group.id,
                             link = link,
@@ -515,6 +516,9 @@ private fun LinkGroupCard(
                             onRequestDeleteLink = onRequestDeleteLink,
                             onSavedLinkClick = onSavedLinkClick,
                         )
+                        if (index < group.links.lastIndex) {
+                            HorizontalDivider()
+                        }
                     }
                 }
             }

@@ -1,10 +1,14 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
+import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.Flow
+import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.presentation.UrlOpenerEvent
@@ -43,10 +47,16 @@ fun UrlOpenerRoute(
     onDismissOpenConfirmation: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val openUrlFailedMessage = stringResource(R.string.open_url_failed_message)
 
     LaunchedEffect(events) {
         events.collect { event ->
             when (event) {
+                UrlOpenerEvent.OpenUrlFailed -> {
+                    Toast.makeText(context, openUrlFailedMessage, Toast.LENGTH_SHORT).show()
+                }
+
                 is UrlOpenerEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
             }
         }

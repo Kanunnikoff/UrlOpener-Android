@@ -248,10 +248,10 @@ class UrlOpenerViewModel(
         viewModelScope.launch {
             val result = openUrlUseCase(url)
 
-            result.exceptionOrNull()?.let { exception ->
+            if (result.isFailure) {
                 // Ошибка открытия ссылки является одноразовым сообщением.
                 // Если положить её в состояние экрана, она могла бы повториться после пересоздания Activity.
-                events.send(UrlOpenerEvent.ShowError(exception.localizedMessage.orEmpty()))
+                events.send(UrlOpenerEvent.OpenUrlFailed)
             }
         }
     }

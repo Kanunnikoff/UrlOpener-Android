@@ -33,4 +33,5 @@
     <string name="delete_link_confirmation">Удалить ссылку?</string>
     <string name="open_confirmation_title">Подтвердите открытие</string>
     <string name="open_link_confirmation">Открыть ссылку «%1$s»?</string>
+    <string name="open_url_failed_message">Не удалось открыть ссылку</string>
 </resources>
