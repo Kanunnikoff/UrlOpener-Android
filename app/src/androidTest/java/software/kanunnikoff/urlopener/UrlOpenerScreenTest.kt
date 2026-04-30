@@ -43,6 +43,24 @@ class UrlOpenerScreenTest {
                     onDeleteConfirmationChanged = {
                         state = state.copy(shouldAskDeleteConfirmation = it)
                     },
+                    onOpenConfirmationChanged = {
+                        state = state.copy(shouldAskOpenConfirmation = it)
+                    },
+                    onAddGroupClick = {},
+                    onEditGroupClick = {},
+                    onRequestDeleteGroup = {},
+                    onSaveGroup = { _, _ -> },
+                    onDismissGroupEditor = {},
+                    onAddLinkClick = {},
+                    onEditLinkClick = { _, _ -> },
+                    onRequestDeleteLink = { _, _ -> },
+                    onSaveLink = { _, _, _ -> },
+                    onDismissLinkEditor = {},
+                    onSavedLinkClick = { _, _ -> },
+                    onConfirmDelete = {},
+                    onDismissDeleteConfirmation = {},
+                    onConfirmOpenSavedLink = {},
+                    onDismissOpenConfirmation = {},
                 )
             }
         }

@@ -7,4 +7,6 @@ interface SettingsRepository {
     val settings: Flow<AppSettings>
 
     suspend fun setShouldAskDeleteConfirmation(shouldAsk: Boolean)
+
+    suspend fun setShouldAskOpenConfirmation(shouldAsk: Boolean)
 }

@@ -2,14 +2,30 @@ package software.kanunnikoff.urlopener.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
 import software.kanunnikoff.urlopener.domain.usecase.SetDeleteConfirmationUseCase
+import software.kanunnikoff.urlopener.domain.usecase.SetOpenConfirmationUseCase
+import software.kanunnikoff.urlopener.domain.usecase.UpdateLinkGroupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 
 class UrlOpenerViewModelFactory(
     private val openUrlUseCase: OpenUrlUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
     private val setDeleteConfirmationUseCase: SetDeleteConfirmationUseCase,
+    private val setOpenConfirmationUseCase: SetOpenConfirmationUseCase,
+    private val observeLinkGroupsUseCase: ObserveLinkGroupsUseCase,
+    private val addLinkGroupUseCase: AddLinkGroupUseCase,
+    private val updateLinkGroupUseCase: UpdateLinkGroupUseCase,
+    private val deleteLinkGroupUseCase: DeleteLinkGroupUseCase,
+    private val addSavedLinkUseCase: AddSavedLinkUseCase,
+    private val updateSavedLinkUseCase: UpdateSavedLinkUseCase,
+    private val deleteSavedLinkUseCase: DeleteSavedLinkUseCase,
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -18,6 +34,14 @@ class UrlOpenerViewModelFactory(
             openUrlUseCase = openUrlUseCase,
             observeSettingsUseCase = observeSettingsUseCase,
             setDeleteConfirmationUseCase = setDeleteConfirmationUseCase,
+            setOpenConfirmationUseCase = setOpenConfirmationUseCase,
+            observeLinkGroupsUseCase = observeLinkGroupsUseCase,
+            addLinkGroupUseCase = addLinkGroupUseCase,
+            updateLinkGroupUseCase = updateLinkGroupUseCase,
+            deleteLinkGroupUseCase = deleteLinkGroupUseCase,
+            addSavedLinkUseCase = addSavedLinkUseCase,
+            updateSavedLinkUseCase = updateSavedLinkUseCase,
+            deleteSavedLinkUseCase = deleteSavedLinkUseCase,
         ) as T
     }
 }

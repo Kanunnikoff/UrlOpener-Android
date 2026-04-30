@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.Flow
+import software.kanunnikoff.urlopener.domain.model.LinkGroup
+import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.presentation.UrlOpenerEvent
 import software.kanunnikoff.urlopener.presentation.UrlOpenerState
 import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
@@ -20,6 +22,22 @@ fun UrlOpenerRoute(
     onClearClick: () -> Unit,
     onOpenClick: () -> Unit,
     onDeleteConfirmationChanged: (Boolean) -> Unit,
+    onOpenConfirmationChanged: (Boolean) -> Unit,
+    onAddGroupClick: () -> Unit,
+    onEditGroupClick: (LinkGroup) -> Unit,
+    onRequestDeleteGroup: (Long) -> Unit,
+    onSaveGroup: (String, String) -> Unit,
+    onDismissGroupEditor: () -> Unit,
+    onAddLinkClick: (Long) -> Unit,
+    onEditLinkClick: (Long, SavedLink) -> Unit,
+    onRequestDeleteLink: (Long, Long) -> Unit,
+    onSaveLink: (Long, String, String) -> Unit,
+    onDismissLinkEditor: () -> Unit,
+    onSavedLinkClick: (Long, Long) -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDeleteConfirmation: () -> Unit,
+    onConfirmOpenSavedLink: () -> Unit,
+    onDismissOpenConfirmation: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -41,5 +59,21 @@ fun UrlOpenerRoute(
         onClearClick = onClearClick,
         onOpenClick = onOpenClick,
         onDeleteConfirmationChanged = onDeleteConfirmationChanged,
+        onOpenConfirmationChanged = onOpenConfirmationChanged,
+        onAddGroupClick = onAddGroupClick,
+        onEditGroupClick = onEditGroupClick,
+        onRequestDeleteGroup = onRequestDeleteGroup,
+        onSaveGroup = onSaveGroup,
+        onDismissGroupEditor = onDismissGroupEditor,
+        onAddLinkClick = onAddLinkClick,
+        onEditLinkClick = onEditLinkClick,
+        onRequestDeleteLink = onRequestDeleteLink,
+        onSaveLink = onSaveLink,
+        onDismissLinkEditor = onDismissLinkEditor,
+        onSavedLinkClick = onSavedLinkClick,
+        onConfirmDelete = onConfirmDelete,
+        onDismissDeleteConfirmation = onDismissDeleteConfirmation,
+        onConfirmOpenSavedLink = onConfirmOpenSavedLink,
+        onDismissOpenConfirmation = onDismissOpenConfirmation,
     )
 }

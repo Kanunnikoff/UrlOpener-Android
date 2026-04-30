@@ -22,6 +22,8 @@ class AndroidSettingsRepository(
             AppSettings(
                 shouldAskDeleteConfirmation = preferences[SHOULD_ASK_DELETE_CONFIRMATION_KEY]
                     ?: true,
+                shouldAskOpenConfirmation = preferences[SHOULD_ASK_OPEN_CONFIRMATION_KEY]
+                    ?: false,
             )
         }
 
@@ -31,9 +33,18 @@ class AndroidSettingsRepository(
         }
     }
 
+    override suspend fun setShouldAskOpenConfirmation(shouldAsk: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[SHOULD_ASK_OPEN_CONFIRMATION_KEY] = shouldAsk
+        }
+    }
+
     private companion object {
         val SHOULD_ASK_DELETE_CONFIRMATION_KEY = booleanPreferencesKey(
             name = "should_ask_delete_confirmation",
+        )
+        val SHOULD_ASK_OPEN_CONFIRMATION_KEY = booleanPreferencesKey(
+            name = "should_ask_open_confirmation",
         )
     }
 }
