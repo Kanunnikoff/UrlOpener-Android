@@ -9,8 +9,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.ui.NavDisplay
 import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
@@ -90,6 +96,16 @@ fun UrlOpenerScreen(
     onDismissOpenConfirmation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val navigationBackStack = remember { mutableStateListOf(state.selectedTab) }
+    val currentState = rememberUpdatedState(state)
+
+    LaunchedEffect(state.selectedTab) {
+        if (navigationBackStack.lastOrNull() != state.selectedTab) {
+            navigationBackStack.remove(state.selectedTab)
+            navigationBackStack.add(state.selectedTab)
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
         containerColor = MaterialTheme.colorScheme.background,
@@ -102,45 +118,62 @@ fun UrlOpenerScreen(
         },
         modifier = modifier,
     ) { paddingValues ->
-        when (state.selectedTab) {
-            UrlOpenerTab.Home -> HomeScreen(
-                state = state,
-                onUrlChanged = onUrlChanged,
-                onClearClick = onClearClick,
-                onOpenClick = onOpenClick,
-                onSaveEnteredLinkClick = onSaveEnteredLinkClick,
-                onAddGroupClick = onAddGroupClick,
-                onEditGroupClick = onEditGroupClick,
-                onRequestDeleteGroup = onRequestDeleteGroup,
-                onAddLinkClick = onAddLinkClick,
-                onEditLinkClick = onEditLinkClick,
-                onRequestDeleteLink = onRequestDeleteLink,
-                onSavedLinkClick = onSavedLinkClick,
-                contentPadding = paddingValues,
-            )
+        NavDisplay(
+            backStack = navigationBackStack,
+            onBack = {
+                if (navigationBackStack.size > MIN_BACK_STACK_SIZE) {
+                    navigationBackStack.removeLastOrNull()
+                    navigationBackStack.lastOrNull()?.let(onTabSelected)
+                }
+            },
+            entryProvider = { tab ->
+                when (tab) {
+                    UrlOpenerTab.Home -> NavEntry(tab) {
+                        HomeScreen(
+                            state = currentState.value,
+                            onUrlChanged = onUrlChanged,
+                            onClearClick = onClearClick,
+                            onOpenClick = onOpenClick,
+                            onSaveEnteredLinkClick = onSaveEnteredLinkClick,
+                            onAddGroupClick = onAddGroupClick,
+                            onEditGroupClick = onEditGroupClick,
+                            onRequestDeleteGroup = onRequestDeleteGroup,
+                            onAddLinkClick = onAddLinkClick,
+                            onEditLinkClick = onEditLinkClick,
+                            onRequestDeleteLink = onRequestDeleteLink,
+                            onSavedLinkClick = onSavedLinkClick,
+                            contentPadding = paddingValues,
+                        )
+                    }
 
-            UrlOpenerTab.Settings -> SettingsScreen(
-                shouldAskDeleteConfirmation = state.shouldAskDeleteConfirmation,
-                shouldAskOpenConfirmation = state.shouldAskOpenConfirmation,
-                onDeleteConfirmationChanged = onDeleteConfirmationChanged,
-                onOpenConfirmationChanged = onOpenConfirmationChanged,
-                onExportJsonClick = onExportJsonClick,
-                onImportJsonClick = onImportJsonClick,
-                onSyncToDriveClick = onSyncToDriveClick,
-                onSyncFromDriveClick = onSyncFromDriveClick,
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .consumeWindowInsets(paddingValues),
-            )
+                    UrlOpenerTab.Settings -> NavEntry(tab) {
+                        SettingsScreen(
+                            shouldAskDeleteConfirmation = currentState.value.shouldAskDeleteConfirmation,
+                            shouldAskOpenConfirmation = currentState.value.shouldAskOpenConfirmation,
+                            onDeleteConfirmationChanged = onDeleteConfirmationChanged,
+                            onOpenConfirmationChanged = onOpenConfirmationChanged,
+                            onExportJsonClick = onExportJsonClick,
+                            onImportJsonClick = onImportJsonClick,
+                            onSyncToDriveClick = onSyncToDriveClick,
+                            onSyncFromDriveClick = onSyncFromDriveClick,
+                            modifier = Modifier
+                                .padding(paddingValues)
+                                .consumeWindowInsets(paddingValues),
+                        )
+                    }
 
-            UrlOpenerTab.About -> AboutScreen(
-                appVersionName = appVersionName,
-                appVersionCode = appVersionCode,
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .consumeWindowInsets(paddingValues),
-            )
-        }
+                    UrlOpenerTab.About -> NavEntry(tab) {
+                        AboutScreen(
+                            appVersionName = appVersionName,
+                            appVersionCode = appVersionCode,
+                            modifier = Modifier
+                                .padding(paddingValues)
+                                .consumeWindowInsets(paddingValues),
+                        )
+                    }
+                }
+            },
+        )
     }
 
     state.groupEditor?.let { editor ->
@@ -192,3 +225,5 @@ fun UrlOpenerScreen(
         )
     }
 }
+
+private const val MIN_BACK_STACK_SIZE = 1
