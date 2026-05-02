@@ -209,7 +209,7 @@ private fun SavedLinkRow(
                 .fillMaxWidth()
                 .clickable { onSavedLinkClick(groupId, link.id) }
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(vertical = 6.dp),
+                .padding(vertical = 8.dp, horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
@@ -268,7 +268,6 @@ private fun SwipeActionBox(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
             .onSizeChanged { itemWidth = it.width.toFloat() },
     ) {
         SwipeActionBackground(
