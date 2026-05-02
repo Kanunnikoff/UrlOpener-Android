@@ -61,6 +61,7 @@ class UrlOpenerViewModel(
                 }
             }
         }
+
         viewModelScope.launch {
             observeLinkGroupsUseCase().collect { groups ->
                 _state.update { state ->
@@ -120,12 +121,14 @@ class UrlOpenerViewModel(
 
     fun onSaveGroup(name: String, description: String) {
         val editor = _state.value.groupEditor
+
         viewModelScope.launch {
             if (editor?.groupId == null) {
                 addLinkGroupUseCase(name, description)
             } else {
                 updateLinkGroupUseCase(editor.groupId, name, description)
             }
+
             _state.update { it.copy(groupEditor = null) }
         }
     }
@@ -144,6 +147,7 @@ class UrlOpenerViewModel(
 
     fun onSaveEnteredLinkClick() {
         val groups = _state.value.groups
+
         when (groups.size) {
             0 -> _state.update { it.copy(groupEditor = GroupEditorState()) }
             1 -> onAddLinkClick(groups.first().id)
@@ -183,12 +187,14 @@ class UrlOpenerViewModel(
 
     fun onSaveLink(groupId: Long, name: String, url: String) {
         val editor = _state.value.linkEditor
+
         viewModelScope.launch {
             if (editor?.linkId == null) {
                 addSavedLinkUseCase(groupId, name, url)
             } else {
                 updateSavedLinkUseCase(groupId, editor.linkId, name, url)
             }
+
             _state.update { it.copy(linkEditor = null) }
         }
     }

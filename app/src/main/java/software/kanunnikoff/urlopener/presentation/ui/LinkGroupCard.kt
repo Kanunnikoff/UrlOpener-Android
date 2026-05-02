@@ -1,7 +1,7 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,12 +107,14 @@ internal fun LinkGroupCard(
                             .clip(MaterialTheme.shapes.small)
                             .background(accentColor),
                     )
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = group.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
+
                         if (group.description.isNotBlank()) {
                             Text(
                                 text = group.description,
@@ -120,6 +122,7 @@ internal fun LinkGroupCard(
                             )
                         }
                     }
+
                     IconButton(onClick = { onAddLinkClick(group.id) }) {
                         Icon(
                             imageVector = Icons.Outlined.Add,
@@ -127,6 +130,7 @@ internal fun LinkGroupCard(
                             tint = accentColor,
                         )
                     }
+
                     Surface(
                         color = accentColor.copy(alpha = 0.16f),
                         contentColor = accentColor,
@@ -139,6 +143,7 @@ internal fun LinkGroupCard(
                             fontWeight = FontWeight.Bold,
                         )
                     }
+
                     Icon(
                         imageVector = if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
                         contentDescription = if (isExpanded) {
@@ -153,6 +158,7 @@ internal fun LinkGroupCard(
 
                 if (isExpanded) {
                     HorizontalDivider()
+
                     if (group.links.isEmpty()) {
                         Text(
                             text = stringResource(R.string.empty_links_message),
@@ -168,6 +174,7 @@ internal fun LinkGroupCard(
                                 onRequestDeleteLink = onRequestDeleteLink,
                                 onSavedLinkClick = onSavedLinkClick,
                             )
+
                             if (index < group.links.lastIndex) {
                                 HorizontalDivider()
                             }
@@ -226,11 +233,13 @@ private fun SavedLinkRow(
                         .size(18.dp),
                 )
             }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = link.name,
                     fontWeight = FontWeight.SemiBold,
                 )
+
                 Text(
                     text = link.url,
                     style = MaterialTheme.typography.bodySmall,
@@ -275,6 +284,7 @@ private fun SwipeActionBox(
             editContentDescription = editContentDescription,
             deleteContentDescription = deleteContentDescription,
         )
+
         Box(
             modifier = Modifier
                 .offset { IntOffset(offset.roundToInt(), y = 0) }

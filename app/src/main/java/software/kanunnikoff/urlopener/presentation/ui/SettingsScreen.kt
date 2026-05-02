@@ -50,12 +50,14 @@ internal fun SettingsScreen(
         ScreenTitle(
             text = stringResource(R.string.settings_tab),
         )
+
         SettingsSwitchRow(
             text = stringResource(R.string.ask_delete_confirmation),
             checked = shouldAskDeleteConfirmation,
             onCheckedChange = onDeleteConfirmationChanged,
             icon = Icons.Outlined.Delete,
         )
+
         SettingsSwitchRow(
             text = stringResource(R.string.ask_open_confirmation),
             checked = shouldAskOpenConfirmation,
@@ -102,6 +104,7 @@ private fun SettingsSwitchRow(
                     modifier = Modifier.padding(10.dp),
                 )
             }
+
             Text(
                 text = text,
                 modifier = Modifier.weight(1f),

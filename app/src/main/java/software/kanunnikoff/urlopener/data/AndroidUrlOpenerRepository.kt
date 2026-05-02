@@ -21,7 +21,7 @@ class AndroidUrlOpenerRepository(
         withContext(Dispatchers.Main.immediate) {
             // The application context outlives an Activity and does not keep the screen in memory.
             // Because of that, Android requires a new task flag when starting an external screen.
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(/* uriString = */ url))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
             context.startActivity(intent)

@@ -7,8 +7,8 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,6 +42,7 @@ internal fun UrlOpenerNavigationBar(
             },
             alwaysShowLabel = false,
         )
+
         NavigationBarItem(
             selected = selectedTab == UrlOpenerTab.Settings,
             onClick = { onTabSelected(UrlOpenerTab.Settings) },
@@ -54,6 +55,7 @@ internal fun UrlOpenerNavigationBar(
             },
             alwaysShowLabel = false,
         )
+
         NavigationBarItem(
             selected = selectedTab == UrlOpenerTab.About,
             onClick = { onTabSelected(UrlOpenerTab.About) },

@@ -7,6 +7,7 @@ import software.kanunnikoff.urlopener.domain.model.LinkGroup
  * Provides the saved-link catalogue as a reactive stream and exposes all write operations for it.
  */
 interface LinkGroupsRepository {
+
     val groups: Flow<List<LinkGroup>>
 
     suspend fun addGroup(name: String, description: String)

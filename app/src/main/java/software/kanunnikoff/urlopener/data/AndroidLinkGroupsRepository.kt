@@ -27,6 +27,7 @@ class AndroidLinkGroupsRepository(
 
     override suspend fun addGroup(name: String, description: String) {
         val now = System.currentTimeMillis()
+
         dao.insertGroup(
             LinkGroupEntity(
                 name = name.trim(),
@@ -52,6 +53,7 @@ class AndroidLinkGroupsRepository(
 
     override suspend fun addLink(groupId: Long, name: String, url: String) {
         val now = System.currentTimeMillis()
+
         dao.insertLink(
             SavedLinkEntity(
                 groupId = groupId,

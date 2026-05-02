@@ -66,11 +66,13 @@ internal fun AboutScreen(
                         modifier = Modifier.padding(12.dp),
                     )
                 }
+
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                 )
+
                 Text(
                     text = stringResource(
                         R.string.app_version_with_build,
@@ -103,6 +105,7 @@ internal fun AboutScreen(
                         modifier = Modifier.padding(10.dp),
                     )
                 }
+
                 HorizontalDivider()
 
                 Text(
@@ -112,6 +115,7 @@ internal fun AboutScreen(
                 )
             }
         }
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }

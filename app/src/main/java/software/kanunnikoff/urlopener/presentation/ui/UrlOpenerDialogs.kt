@@ -77,6 +77,7 @@ internal fun GroupEditorDialog(
                     label = { Text(stringResource(R.string.group_name)) },
                     singleLine = true,
                 )
+
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -148,6 +149,7 @@ internal fun LinkEditorDialog(
                     label = { Text(stringResource(R.string.link_name)) },
                     singleLine = true,
                 )
+
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
@@ -259,6 +261,7 @@ internal fun ConfirmationDialog(
                     imageVector = Icons.Outlined.Done,
                     contentDescription = null,
                 )
+
                 Text(confirmText)
             }
         },

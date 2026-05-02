@@ -17,12 +17,13 @@ internal object FriendlyCardDefaults {
     @Composable
     fun groupAccentColor(groupId: Long): Color {
         val colors = listOf(
-            Color(0xFFEF8E52),
-            Color(0xFF55A879),
-            Color(0xFF7B8DE8),
-            Color(0xFFD66C9F),
-            Color(0xFFB08A37),
+            Color(color = 0xFFEF8E52),
+            Color(color = 0xFF55A879),
+            Color(color = 0xFF7B8DE8),
+            Color(color = 0xFFD66C9F),
+            Color(color = 0xFFB08A37),
         )
+
         return colors[(groupId % colors.size).toInt()]
     }
 }

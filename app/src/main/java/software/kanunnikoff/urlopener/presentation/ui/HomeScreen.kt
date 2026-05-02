@@ -24,8 +24,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -132,7 +130,7 @@ internal fun HomeScreen(
                     EmptyGroupsContent(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillParentMaxHeight(0.82f),
+                            .fillParentMaxHeight(fraction = 0.82f),
                     )
                 }
             } else {
@@ -141,6 +139,7 @@ internal fun HomeScreen(
                     key = { it.id },
                 ) { group ->
                     val isExpanded = group.id in expandedGroupIds
+
                     LinkGroupCard(
                         group = group,
                         isExpanded = isExpanded,
@@ -195,12 +194,14 @@ private fun EmptyGroupsContent(
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(72.dp),
                 )
+
                 Text(
                     text = stringResource(R.string.empty_groups_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
+
                 Text(
                     text = stringResource(R.string.empty_groups_message),
                     style = MaterialTheme.typography.bodyLarge,
@@ -221,6 +222,7 @@ private fun EmptyGroupsContent(
 @Composable
 private fun PaddingValues.withAdditionalPadding(all: Dp): PaddingValues {
     val layoutDirection = LocalLayoutDirection.current
+
     // Preserve the Scaffold-provided safe-area padding while adding local spacing around content.
     return PaddingValues(
         start = calculateStartPadding(layoutDirection) + all,
@@ -297,7 +299,9 @@ private fun UrlInputBlock(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
+
                     Spacer(modifier = Modifier.width(6.dp))
+
                     Text(stringResource(R.string.save_button))
                 }
 
@@ -311,7 +315,9 @@ private fun UrlInputBlock(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
+
                     Spacer(modifier = Modifier.width(6.dp))
+
                     Text(stringResource(R.string.open_button))
                 }
             }
@@ -338,6 +344,7 @@ private fun SavedLinksHeader(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
         )
+
         TextButton(
             onClick = onAddGroupClick,
             colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
@@ -349,7 +356,9 @@ private fun SavedLinksHeader(
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
             )
+
             Spacer(modifier = Modifier.width(6.dp))
+
             Text(stringResource(R.string.add_group))
         }
     }

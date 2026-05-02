@@ -34,12 +34,15 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: UrlOpenerViewModel by viewModels {
         val settingsRepository = AndroidSettingsRepository(applicationContext)
+
         val database = Room.databaseBuilder(
-            applicationContext,
-            UrlOpenerDatabase::class.java,
-            "url_opener.db",
+            context = applicationContext,
+            klass = UrlOpenerDatabase::class.java,
+            name = "url_opener.db",
         ).build()
-        val linkGroupsRepository = AndroidLinkGroupsRepository(database.linkGroupsDao())
+
+        val linkGroupsRepository = AndroidLinkGroupsRepository(dao = database.linkGroupsDao())
+
         UrlOpenerViewModelFactory(
             openUrlUseCase = OpenUrlUseCase(
                 repository = AndroidUrlOpenerRepository(applicationContext),
@@ -59,7 +62,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }

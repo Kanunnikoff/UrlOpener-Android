@@ -49,6 +49,7 @@ class AndroidSettingsRepository(
         val SHOULD_ASK_DELETE_CONFIRMATION_KEY = booleanPreferencesKey(
             name = "should_ask_delete_confirmation",
         )
+
         val SHOULD_ASK_OPEN_CONFIRMATION_KEY = booleanPreferencesKey(
             name = "should_ask_open_confirmation",
         )

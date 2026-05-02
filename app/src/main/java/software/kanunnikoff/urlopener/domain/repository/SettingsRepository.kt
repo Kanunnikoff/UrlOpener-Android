@@ -7,6 +7,7 @@ import software.kanunnikoff.urlopener.domain.model.AppSettings
  * Stores and observes user preferences for confirmation prompts.
  */
 interface SettingsRepository {
+
     val settings: Flow<AppSettings>
 
     suspend fun setShouldAskDeleteConfirmation(shouldAsk: Boolean)
