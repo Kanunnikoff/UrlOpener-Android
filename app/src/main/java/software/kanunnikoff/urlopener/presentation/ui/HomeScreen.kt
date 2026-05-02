@@ -99,6 +99,20 @@ internal fun HomeScreen(
     ) {
         ScreenTitle(text = stringResource(R.string.app_name))
 
+        if (state.groups.isEmpty()) {
+            EmptyHomeContent(
+                url = state.url,
+                onUrlChanged = onUrlChanged,
+                onClearClick = onClearClick,
+                onOpenClick = onOpenClick,
+                onSaveEnteredLinkClick = onSaveEnteredLinkClick,
+                onAddGroupClick = onAddGroupClick,
+                modifier = Modifier.weight(1f),
+            )
+
+            return@Column
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,41 +139,76 @@ internal fun HomeScreen(
                 }
             }
 
-            if (state.groups.isEmpty()) {
-                item(key = "empty_groups") {
-                    EmptyGroupsContent(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillParentMaxHeight(fraction = 0.82f),
-                    )
-                }
-            } else {
-                items(
-                    items = state.groups,
-                    key = { it.id },
-                ) { group ->
-                    val isExpanded = group.id in expandedGroupIds
+            items(
+                items = state.groups,
+                key = { it.id },
+            ) { group ->
+                val isExpanded = group.id in expandedGroupIds
 
-                    LinkGroupCard(
-                        group = group,
-                        isExpanded = isExpanded,
-                        onGroupClick = {
-                            expandedGroupIds = if (isExpanded) {
-                                expandedGroupIds - group.id
-                            } else {
-                                expandedGroupIds + group.id
-                            }
-                        },
-                        onEditGroupClick = onEditGroupClick,
-                        onRequestDeleteGroup = onRequestDeleteGroup,
-                        onAddLinkClick = onAddLinkClick,
-                        onEditLinkClick = onEditLinkClick,
-                        onRequestDeleteLink = onRequestDeleteLink,
-                        onSavedLinkClick = onSavedLinkClick,
-                    )
-                }
+                LinkGroupCard(
+                    group = group,
+                    isExpanded = isExpanded,
+                    onGroupClick = {
+                        expandedGroupIds = if (isExpanded) {
+                            expandedGroupIds - group.id
+                        } else {
+                            expandedGroupIds + group.id
+                        }
+                    },
+                    onEditGroupClick = onEditGroupClick,
+                    onRequestDeleteGroup = onRequestDeleteGroup,
+                    onAddLinkClick = onAddLinkClick,
+                    onEditLinkClick = onEditLinkClick,
+                    onRequestDeleteLink = onRequestDeleteLink,
+                    onSavedLinkClick = onSavedLinkClick,
+                )
             }
         }
+    }
+}
+
+/**
+ * Home content used before the first group is created.
+ *
+ * @param url Current URL input value.
+ * @param onUrlChanged Called when the URL input text changes.
+ * @param onClearClick Called when the user clears the URL input.
+ * @param onOpenClick Called when the user opens the entered URL.
+ * @param onSaveEnteredLinkClick Called when the user saves the current URL input.
+ * @param onAddGroupClick Called when the user starts creating a group.
+ * @param modifier Optional modifier for positioning the content.
+ */
+@Composable
+private fun EmptyHomeContent(
+    url: String,
+    onUrlChanged: (String) -> Unit,
+    onClearClick: () -> Unit,
+    onOpenClick: () -> Unit,
+    onSaveEnteredLinkClick: () -> Unit,
+    onAddGroupClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        UrlInputBlock(
+            url = url,
+            onUrlChanged = onUrlChanged,
+            onClearClick = onClearClick,
+            onOpenClick = onOpenClick,
+            onSaveEnteredLinkClick = onSaveEnteredLinkClick,
+        )
+
+        SavedLinksHeader(onAddGroupClick = onAddGroupClick)
+
+        EmptyGroupsContent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
     }
 }
 
