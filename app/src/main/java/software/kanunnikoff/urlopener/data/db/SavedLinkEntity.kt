@@ -5,6 +5,12 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+/**
+ * Database row for a saved link.
+ *
+ * The foreign key removes child links automatically when their group is deleted, which keeps
+ * deletion logic simple and prevents orphaned records.
+ */
 @Entity(
     tableName = "saved_links",
     foreignKeys = [

@@ -14,6 +14,12 @@ import software.kanunnikoff.urlopener.domain.usecase.SetOpenConfirmationUseCase
 import software.kanunnikoff.urlopener.domain.usecase.UpdateLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 
+/**
+ * Creates [UrlOpenerViewModel] with manually wired dependencies.
+ *
+ * The app is small enough that this keeps startup explicit without introducing a dependency
+ * injection framework.
+ */
 class UrlOpenerViewModelFactory(
     private val openUrlUseCase: OpenUrlUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,

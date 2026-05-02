@@ -8,6 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 
+/**
+ * App-level Material theme wrapper.
+ *
+ * The color scheme follows the system dark-mode setting by default and wraps content in a Surface
+ * so every screen receives the theme background.
+ */
 @Composable
 fun UrlOpenerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

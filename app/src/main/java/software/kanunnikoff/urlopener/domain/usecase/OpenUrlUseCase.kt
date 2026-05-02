@@ -2,6 +2,9 @@ package software.kanunnikoff.urlopener.domain.usecase
 
 import software.kanunnikoff.urlopener.domain.repository.UrlOpenerRepository
 
+/**
+ * Normalizes the entered URL and delegates opening to the platform repository.
+ */
 class OpenUrlUseCase(
     private val repository: UrlOpenerRepository,
 ) {

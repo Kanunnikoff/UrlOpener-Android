@@ -4,6 +4,9 @@ import kotlinx.coroutines.flow.Flow
 import software.kanunnikoff.urlopener.domain.model.AppSettings
 import software.kanunnikoff.urlopener.domain.repository.SettingsRepository
 
+/**
+ * Observes persisted user settings.
+ */
 class ObserveSettingsUseCase(
     private val repository: SettingsRepository,
 ) {

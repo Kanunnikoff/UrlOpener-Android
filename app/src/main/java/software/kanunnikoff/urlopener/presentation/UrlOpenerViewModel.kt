@@ -23,6 +23,13 @@ import software.kanunnikoff.urlopener.domain.usecase.UpdateLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
 
+/**
+ * Coordinates user actions, persistent settings, saved links, and one-time UI events.
+ *
+ * The ViewModel keeps all mutable screen state in a single [StateFlow] and emits transient events
+ * through a channel so messages such as failed URL openings are not replayed after configuration
+ * changes.
+ */
 class UrlOpenerViewModel(
     private val openUrlUseCase: OpenUrlUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
@@ -249,8 +256,8 @@ class UrlOpenerViewModel(
             val result = openUrlUseCase(url)
 
             if (result.isFailure) {
-                // Ошибка открытия ссылки является одноразовым сообщением.
-                // Если положить её в состояние экрана, она могла бы повториться после пересоздания Activity.
+                // A URL opening failure is a one-time message.
+                // Keeping it in screen state could show it again after Activity recreation.
                 events.send(UrlOpenerEvent.OpenUrlFailed)
             }
         }

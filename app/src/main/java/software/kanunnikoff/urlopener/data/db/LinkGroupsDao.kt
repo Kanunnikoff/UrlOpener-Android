@@ -7,6 +7,12 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Room access object for groups and saved links.
+ *
+ * Reads are wrapped in a transaction so every emission contains matching groups and links from the
+ * same database snapshot.
+ */
 @Dao
 interface LinkGroupsDao {
 

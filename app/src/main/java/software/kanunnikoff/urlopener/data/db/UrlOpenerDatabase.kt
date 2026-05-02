@@ -3,6 +3,9 @@ package software.kanunnikoff.urlopener.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
+/**
+ * Main Room database for the app.
+ */
 @Database(
     entities = [
         LinkGroupEntity::class,

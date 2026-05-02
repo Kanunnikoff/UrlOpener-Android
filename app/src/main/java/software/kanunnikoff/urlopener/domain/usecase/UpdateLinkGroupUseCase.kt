@@ -2,6 +2,9 @@ package software.kanunnikoff.urlopener.domain.usecase
 
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
+/**
+ * Updates the name and description of an existing group.
+ */
 class UpdateLinkGroupUseCase(
     private val repository: LinkGroupsRepository,
 ) {

@@ -2,6 +2,9 @@ package software.kanunnikoff.urlopener.domain.usecase
 
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
+/**
+ * Updates a saved link inside a specific group.
+ */
 class UpdateSavedLinkUseCase(
     private val repository: LinkGroupsRepository,
 ) {

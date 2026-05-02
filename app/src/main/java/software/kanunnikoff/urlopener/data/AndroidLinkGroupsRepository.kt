@@ -10,6 +10,12 @@ import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
+/**
+ * Room-backed implementation of [LinkGroupsRepository].
+ *
+ * The repository trims user-entered text before storage and maps database records to domain models
+ * so presentation code never depends on Room annotations or table shapes.
+ */
 class AndroidLinkGroupsRepository(
     private val dao: LinkGroupsDao,
 ) : LinkGroupsRepository {
@@ -68,6 +74,8 @@ class AndroidLinkGroupsRepository(
     }
 
     private fun GroupWithLinks.toDomain(): LinkGroup {
+        // Keep the mapping explicit because the database relation model and the UI model have
+        // different ownership: Room describes rows, while the domain model describes screen data.
         return LinkGroup(
             id = group.id,
             name = group.name,

@@ -77,7 +77,7 @@ class UrlOpenerScreenTest {
         composeRule.onNodeWithText(context.getString(R.string.clear_button))
             .performClick()
 
-        // После очистки остаётся только подпись поля; введённой ссылки в дереве Compose быть не должно.
+        // After clearing, only the field label remains; the entered URL must not stay in the Compose tree.
         composeRule.onNodeWithText(url)
             .assertDoesNotExist()
     }

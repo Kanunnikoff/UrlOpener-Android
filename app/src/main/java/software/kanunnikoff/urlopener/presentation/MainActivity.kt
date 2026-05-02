@@ -27,6 +27,9 @@ import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 import software.kanunnikoff.urlopener.presentation.theme.UrlOpenerTheme
 import software.kanunnikoff.urlopener.presentation.ui.UrlOpenerRoute
 
+/**
+ * Application entry point that wires persistence, domain use cases, and the Compose screen.
+ */
 class MainActivity : ComponentActivity() {
 
     private val viewModel: UrlOpenerViewModel by viewModels {

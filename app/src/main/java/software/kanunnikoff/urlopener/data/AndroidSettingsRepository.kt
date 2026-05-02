@@ -13,6 +13,12 @@ private val Context.settingsDataStore by preferencesDataStore(
     name = "url_opener_settings",
 )
 
+/**
+ * DataStore-backed settings repository.
+ *
+ * Missing preference values intentionally fall back to [AppSettings] defaults so upgrades and fresh
+ * installs share the same behavior.
+ */
 class AndroidSettingsRepository(
     private val context: Context,
 ) : SettingsRepository {
