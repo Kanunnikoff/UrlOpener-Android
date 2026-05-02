@@ -2,12 +2,15 @@ package software.kanunnikoff.urlopener.presentation.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,15 +30,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
+import kotlin.math.roundToInt
 
 /**
  * Expandable card that shows one saved-link group and its group-level actions.
@@ -64,106 +77,100 @@ internal fun LinkGroupCard(
 ) {
     val accentColor = FriendlyCardDefaults.groupAccentColor(group.id)
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+    SwipeActionBox(
+        editContentDescription = stringResource(R.string.edit_group),
+        deleteContentDescription = stringResource(R.string.delete_group),
+        onEdit = { onEditGroupClick(group) },
+        onDelete = { onRequestDeleteGroup(group.id) },
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onGroupClick),
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .padding(end = 12.dp)
-                        .width(6.dp)
-                        .height(44.dp)
-                        .clip(MaterialTheme.shapes.small)
-                        .background(accentColor),
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = group.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        .fillMaxWidth()
+                        .clickable(onClick = onGroupClick),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .width(6.dp)
+                            .height(44.dp)
+                            .clip(MaterialTheme.shapes.small)
+                            .background(accentColor),
                     )
-                    if (group.description.isNotBlank()) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = group.description,
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = group.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        if (group.description.isNotBlank()) {
+                            Text(
+                                text = group.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
+                    Surface(
+                        color = accentColor.copy(alpha = 0.16f),
+                        contentColor = accentColor,
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Text(
+                            text = group.links.size.toString(),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = if (isExpanded) {
+                            stringResource(R.string.collapse_group)
+                        } else {
+                            stringResource(R.string.expand_group)
+                        },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 6.dp),
+                    )
+                    IconButton(onClick = { onAddLinkClick(group.id) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = stringResource(R.string.add_link),
+                            tint = accentColor,
                         )
                     }
                 }
-                Surface(
-                    color = accentColor.copy(alpha = 0.16f),
-                    contentColor = accentColor,
-                    shape = MaterialTheme.shapes.large,
-                ) {
-                    Text(
-                        text = group.links.size.toString(),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                Icon(
-                    imageVector = if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                    contentDescription = if (isExpanded) {
-                        stringResource(R.string.collapse_group)
-                    } else {
-                        stringResource(R.string.expand_group)
-                    },
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 6.dp),
-                )
-                IconButton(onClick = { onAddLinkClick(group.id) }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.add_link),
-                        tint = accentColor,
-                    )
-                }
-                IconButton(onClick = { onEditGroupClick(group) }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = stringResource(R.string.edit_group),
-                        tint = MaterialTheme.colorScheme.secondary,
-                    )
-                }
-                IconButton(onClick = { onRequestDeleteGroup(group.id) }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = stringResource(R.string.delete_group),
-                    )
-                }
-            }
 
-            if (isExpanded) {
-                HorizontalDivider()
-                if (group.links.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.empty_links_message),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
-                } else {
-                    group.links.forEachIndexed { index, link ->
-                        SavedLinkRow(
-                            groupId = group.id,
-                            link = link,
-                            onEditLinkClick = onEditLinkClick,
-                            onRequestDeleteLink = onRequestDeleteLink,
-                            onSavedLinkClick = onSavedLinkClick,
+                if (isExpanded) {
+                    HorizontalDivider()
+                    if (group.links.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.empty_links_message),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp),
                         )
-                        if (index < group.links.lastIndex) {
-                            HorizontalDivider()
+                    } else {
+                        group.links.forEachIndexed { index, link ->
+                            SavedLinkRow(
+                                groupId = group.id,
+                                link = link,
+                                onEditLinkClick = onEditLinkClick,
+                                onRequestDeleteLink = onRequestDeleteLink,
+                                onSavedLinkClick = onSavedLinkClick,
+                            )
+                            if (index < group.links.lastIndex) {
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
@@ -191,49 +198,167 @@ private fun SavedLinkRow(
 ) {
     val accentColor = FriendlyCardDefaults.groupAccentColor(groupId)
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onSavedLinkClick(groupId, link.id) }
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    SwipeActionBox(
+        editContentDescription = stringResource(R.string.edit_link),
+        deleteContentDescription = stringResource(R.string.delete_link),
+        onEdit = { onEditLinkClick(groupId, link) },
+        onDelete = { onRequestDeleteLink(groupId, link.id) },
     ) {
-        Surface(
-            color = accentColor.copy(alpha = 0.14f),
-            contentColor = accentColor,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.padding(end = 10.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSavedLinkClick(groupId, link.id) }
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Link,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(18.dp),
-            )
+            Surface(
+                color = accentColor.copy(alpha = 0.14f),
+                contentColor = accentColor,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.padding(end = 10.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Link,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(18.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = link.name,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = link.url,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = link.name,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = link.url,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    }
+}
+
+/**
+ * Horizontally draggable list item that reveals edit and delete actions.
+ *
+ * @param editContentDescription Accessibility description for the edit action.
+ * @param deleteContentDescription Accessibility description for the delete action.
+ * @param onEdit Called when the item is dragged far enough to the right.
+ * @param onDelete Called when the item is dragged far enough to the left.
+ * @param modifier Optional modifier for the swipe container.
+ * @param content Foreground item content that follows the user's drag.
+ */
+@Composable
+private fun SwipeActionBox(
+    editContentDescription: String,
+    deleteContentDescription: String,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    var itemWidth by remember { mutableFloatStateOf(0f) }
+    var offset by remember { mutableFloatStateOf(0f) }
+    val maxOffset = itemWidth * 0.5f
+    val actionThreshold = itemWidth * 0.45f
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .onSizeChanged { itemWidth = it.width.toFloat() },
+    ) {
+        SwipeActionBackground(
+            offset = offset,
+            editContentDescription = editContentDescription,
+            deleteContentDescription = deleteContentDescription,
+        )
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(offset.roundToInt(), y = 0) }
+                .pointerInput(itemWidth) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            when {
+                                offset >= actionThreshold -> onEdit()
+                                offset <= -actionThreshold -> onDelete()
+                            }
+                            offset = 0f
+                        },
+                        onDragCancel = {
+                            offset = 0f
+                        },
+                    ) { change, dragAmount ->
+                        change.consume()
+                        offset = (offset + dragAmount).coerceIn(-maxOffset, maxOffset)
+                    }
+                },
+        ) {
+            content()
         }
-        IconButton(onClick = { onEditLinkClick(groupId, link) }) {
-            Icon(
-                imageVector = Icons.Outlined.Edit,
-                contentDescription = stringResource(R.string.edit_link),
-            )
-        }
-        IconButton(onClick = { onRequestDeleteLink(groupId, link.id) }) {
-            Icon(
-                imageVector = Icons.Outlined.Delete,
-                contentDescription = stringResource(R.string.delete_link),
-            )
-        }
+    }
+}
+
+/**
+ * Action background shown behind a swiped list item.
+ *
+ * @param offset Current foreground content offset in pixels.
+ * @param editContentDescription Accessibility description for the edit action.
+ * @param deleteContentDescription Accessibility description for the delete action.
+ */
+@Composable
+private fun BoxScope.SwipeActionBackground(
+    offset: Float,
+    editContentDescription: String,
+    deleteContentDescription: String,
+) {
+    when {
+        offset > 0f -> SwipeActionSurface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            icon = Icons.Outlined.Edit,
+            contentDescription = editContentDescription,
+            alignment = Alignment.CenterStart,
+        )
+
+        offset < 0f -> SwipeActionSurface(
+            color = MaterialTheme.colorScheme.errorContainer,
+            icon = Icons.Outlined.Delete,
+            contentDescription = deleteContentDescription,
+            alignment = Alignment.CenterEnd,
+        )
+    }
+}
+
+/**
+ * Colored swipe action surface with an icon pinned to the active swipe side.
+ *
+ * @param color Background color for the action.
+ * @param icon Icon that identifies the action.
+ * @param contentDescription Accessibility description for the icon.
+ * @param alignment Side where the action icon should be shown.
+ */
+@Composable
+private fun BoxScope.SwipeActionSurface(
+    color: Color,
+    icon: ImageVector,
+    contentDescription: String,
+    alignment: Alignment,
+) {
+    Box(
+        modifier = Modifier
+            .matchParentSize()
+            .clip(MaterialTheme.shapes.large)
+            .background(color)
+            .padding(horizontal = 24.dp),
+        contentAlignment = alignment,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
