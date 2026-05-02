@@ -22,7 +22,8 @@ and ready to launch.
 - Jetpack Compose with Compose BOM 2026.04.01
 - Material 3
 - Kotlin Coroutines
-- Room 2.8.4
+- Room 3.0.0-alpha03
+- SQLite 2.7.0-alpha03
 - DataStore Preferences 1.2.1
 
 ## Android Configuration

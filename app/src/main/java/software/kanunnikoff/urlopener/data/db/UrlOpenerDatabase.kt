@@ -1,9 +1,7 @@
 package software.kanunnikoff.urlopener.data.db
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
 
 /**
  * Main Room database for the app.

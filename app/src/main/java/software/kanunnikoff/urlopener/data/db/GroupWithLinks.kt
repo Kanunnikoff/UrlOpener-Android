@@ -1,7 +1,7 @@
 package software.kanunnikoff.urlopener.data.db
 
-import androidx.room.Embedded
-import androidx.room.Relation
+import androidx.room3.Embedded
+import androidx.room3.Relation
 
 /**
  * Room projection that loads a group together with all links that belong to it.

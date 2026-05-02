@@ -1,7 +1,8 @@
 package software.kanunnikoff.urlopener.di
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -54,7 +55,8 @@ object UrlOpenerDatabaseModule {
             context = context,
             klass = UrlOpenerDatabase::class.java,
             name = DATABASE_NAME,
-        ).build()
+        ).setDriver(BundledSQLiteDriver())
+            .build()
     }
 
     @Provides

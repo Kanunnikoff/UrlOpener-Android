@@ -1,7 +1,7 @@
 package software.kanunnikoff.urlopener.data.db
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room3.Entity
+import androidx.room3.PrimaryKey
 
 /**
  * Database row for a saved-link group.

@@ -65,8 +65,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
-    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.sqlite.bundled)
 
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.room.compiler)
