@@ -32,8 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             UrlOpenerTheme {
                 UrlOpenerRoute(
-                    state = viewModel.state.collectAsStateWithLifecycle().value,
-                    events = viewModel.eventFlow,
+                    state = viewModel.uiState.collectAsStateWithLifecycle().value,
                     appVersionName = BuildConfig.VERSION_NAME,
                     appVersionCode = BuildConfig.VERSION_CODE,
                     onTabSelected = viewModel::onTabSelected,
@@ -49,6 +48,10 @@ class MainActivity : ComponentActivity() {
                     onJsonImported = viewModel::onJsonImported,
                     onTransferFinished = viewModel::onTransferFinished,
                     onDriveAuthorizationCompleted = viewModel::onDriveAuthorizationCompleted,
+                    onExportJsonRequestHandled = viewModel::onExportJsonRequestHandled,
+                    onImportJsonRequestHandled = viewModel::onImportJsonRequestHandled,
+                    onDriveAuthorizationRequestHandled = viewModel::onDriveAuthorizationRequestHandled,
+                    onUserMessageShown = viewModel::onUserMessageShown,
                     onAddGroupClick = viewModel::onAddGroupClick,
                     onEditGroupClick = viewModel::onEditGroupClick,
                     onRequestDeleteGroup = viewModel::onRequestDeleteGroup,

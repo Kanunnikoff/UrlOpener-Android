@@ -1,8 +1,9 @@
 package software.kanunnikoff.urlopener.presentation
 
-import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
+import android.app.PendingIntent
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
+import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
 
 /**
  * Complete immutable state for the main screen.
@@ -21,6 +22,10 @@ data class UrlOpenerState(
     val shouldShowGroupPicker: Boolean = false,
     val deleteTarget: DeleteTarget? = null,
     val openTarget: OpenTarget? = null,
+    val exportJsonRequest: ExportJsonRequest? = null,
+    val importJsonRequestId: Long? = null,
+    val driveAuthorizationRequest: DriveAuthorizationRequest? = null,
+    val userMessage: UserMessage? = null,
 )
 
 /**
@@ -61,3 +66,24 @@ sealed interface DeleteTarget {
 data class OpenTarget(
     val link: SavedLink,
 )
+
+data class ExportJsonRequest(
+    val id: Long,
+    val fileName: String,
+    val json: String,
+)
+
+data class DriveAuthorizationRequest(
+    val id: Long,
+    val pendingIntent: PendingIntent,
+)
+
+data class UserMessage(
+    val id: Long,
+    val kind: UserMessageKind,
+)
+
+sealed interface UserMessageKind {
+    data object OpenUrlFailed : UserMessageKind
+    data class Transfer(val message: TransferMessage) : UserMessageKind
+}

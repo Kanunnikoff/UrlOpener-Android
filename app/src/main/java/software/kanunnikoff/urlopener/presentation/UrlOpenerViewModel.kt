@@ -3,10 +3,11 @@ package software.kanunnikoff.urlopener.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
@@ -31,11 +32,10 @@ import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
 import javax.inject.Inject
 
 /**
- * Coordinates user actions, persistent settings, saved links, and one-time UI events.
+ * Coordinates user actions, persistent settings, saved links, and UI state.
  *
- * The ViewModel keeps all mutable screen state in a single [StateFlow] and emits transient events
- * through a channel so messages such as failed URL openings are not replayed after configuration
- * changes.
+ * Transient UI work is represented in [UrlOpenerState] with request identifiers. The UI confirms
+ * handling each request so actions are not replayed by ordinary recomposition.
  */
 @HiltViewModel
 class UrlOpenerViewModel @Inject constructor(
@@ -56,49 +56,41 @@ class UrlOpenerViewModel @Inject constructor(
     private val importBackupUseCase: ImportBackupUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(UrlOpenerState())
-    val state: StateFlow<UrlOpenerState> = _state
+    private val localState = MutableStateFlow(UrlOpenerState())
 
-    private val events = Channel<UrlOpenerEvent>(Channel.BUFFERED)
-    val eventFlow = events.receiveAsFlow()
+    val uiState: StateFlow<UrlOpenerState> = combine(
+        localState,
+        observeSettingsUseCase(),
+        observeLinkGroupsUseCase(),
+    ) { state, settings, groups ->
+        state.copy(
+            shouldAskDeleteConfirmation = settings.shouldAskDeleteConfirmation,
+            shouldAskOpenConfirmation = settings.shouldAskOpenConfirmation,
+            groups = groups,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+        initialValue = UrlOpenerState(),
+    )
 
     private var pendingDriveAction: DriveAction? = null
-
-    init {
-        viewModelScope.launch {
-            observeSettingsUseCase().collect { settings ->
-                _state.update {
-                    it.copy(
-                        shouldAskDeleteConfirmation = settings.shouldAskDeleteConfirmation,
-                        shouldAskOpenConfirmation = settings.shouldAskOpenConfirmation,
-                    )
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            observeLinkGroupsUseCase().collect { groups ->
-                _state.update { state ->
-                    state.copy(groups = groups)
-                }
-            }
-        }
-    }
+    private var nextRequestId = INITIAL_REQUEST_ID
 
     fun onTabSelected(tab: UrlOpenerTab) {
-        _state.update { it.copy(selectedTab = tab) }
+        localState.update { it.copy(selectedTab = tab) }
     }
 
     fun onUrlChanged(url: String) {
-        _state.update { it.copy(url = url) }
+        localState.update { it.copy(url = url) }
     }
 
     fun onClearClick() {
-        _state.update { it.copy(url = "") }
+        localState.update { it.copy(url = "") }
     }
 
     fun onOpenClick() {
-        openUrl(_state.value.url)
+        openUrl(uiState.value.url)
     }
 
     fun onDeleteConfirmationChanged(shouldAsk: Boolean) {
@@ -114,20 +106,23 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onExportJsonClick() {
-        viewModelScope.launch {
-            events.send(
-                UrlOpenerEvent.ExportJsonRequested(
-                    fileName = EXPORT_FILE_NAME,
-                    json = exportLinkGroupsJsonUseCase(_state.value.groups),
-                ),
+        val request = ExportJsonRequest(
+            id = nextRequestId(),
+            fileName = EXPORT_FILE_NAME,
+            json = exportLinkGroupsJsonUseCase(uiState.value.groups),
+        )
+
+        localState.update {
+            it.copy(
+                exportJsonRequest = request,
             )
         }
     }
 
     fun onImportJsonClick() {
-        viewModelScope.launch {
-            events.send(UrlOpenerEvent.ImportJsonRequested)
-        }
+        val requestId = nextRequestId()
+
+        localState.update { it.copy(importJsonRequestId = requestId) }
     }
 
     fun onSyncToDriveClick() {
@@ -148,10 +143,8 @@ class UrlOpenerViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            events.send(
-                UrlOpenerEvent.ShowTransferMessage(
-                    action?.failureMessage ?: TransferMessage.DriveSyncFailed,
-                ),
+            showTransferMessage(
+                action?.failureMessage ?: TransferMessage.DriveSyncFailed,
             )
         }
     }
@@ -161,25 +154,63 @@ class UrlOpenerViewModel @Inject constructor(
             runCatching {
                 importLinkGroupsJsonUseCase(json)
             }.onSuccess {
-                events.send(UrlOpenerEvent.ShowTransferMessage(successMessage))
+                showTransferMessage(successMessage)
             }.onFailure {
-                events.send(UrlOpenerEvent.ShowTransferMessage(failureMessage))
+                showTransferMessage(failureMessage)
             }
         }
     }
 
     fun onTransferFinished(message: TransferMessage) {
-        viewModelScope.launch {
-            events.send(UrlOpenerEvent.ShowTransferMessage(message))
+        showTransferMessage(message)
+    }
+
+    fun onExportJsonRequestHandled(requestId: Long) {
+        localState.update {
+            if (it.exportJsonRequest?.id == requestId) {
+                it.copy(exportJsonRequest = null)
+            } else {
+                it
+            }
+        }
+    }
+
+    fun onImportJsonRequestHandled(requestId: Long) {
+        localState.update {
+            if (it.importJsonRequestId == requestId) {
+                it.copy(importJsonRequestId = null)
+            } else {
+                it
+            }
+        }
+    }
+
+    fun onDriveAuthorizationRequestHandled(requestId: Long) {
+        localState.update {
+            if (it.driveAuthorizationRequest?.id == requestId) {
+                it.copy(driveAuthorizationRequest = null)
+            } else {
+                it
+            }
+        }
+    }
+
+    fun onUserMessageShown(messageId: Long) {
+        localState.update {
+            if (it.userMessage?.id == messageId) {
+                it.copy(userMessage = null)
+            } else {
+                it
+            }
         }
     }
 
     fun onAddGroupClick() {
-        _state.update { it.copy(groupEditor = GroupEditorState()) }
+        localState.update { it.copy(groupEditor = GroupEditorState()) }
     }
 
     fun onEditGroupClick(group: LinkGroup) {
-        _state.update {
+        localState.update {
             it.copy(
                 groupEditor = GroupEditorState(
                     groupId = group.id,
@@ -191,11 +222,11 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onDismissGroupEditor() {
-        _state.update { it.copy(groupEditor = null) }
+        localState.update { it.copy(groupEditor = null) }
     }
 
     fun onSaveGroup(name: String, description: String) {
-        val editor = _state.value.groupEditor
+        val editor = uiState.value.groupEditor
 
         viewModelScope.launch {
             if (editor?.groupId == null) {
@@ -204,34 +235,34 @@ class UrlOpenerViewModel @Inject constructor(
                 updateLinkGroupUseCase(editor.groupId, name, description)
             }
 
-            _state.update { it.copy(groupEditor = null) }
+            localState.update { it.copy(groupEditor = null) }
         }
     }
 
     fun onRequestDeleteGroup(groupId: Long) {
-        if (_state.value.shouldAskDeleteConfirmation) {
-            _state.update { it.copy(deleteTarget = DeleteTarget.Group(groupId)) }
+        if (uiState.value.shouldAskDeleteConfirmation) {
+            localState.update { it.copy(deleteTarget = DeleteTarget.Group(groupId)) }
         } else {
             deleteGroup(groupId)
         }
     }
 
     fun onAddLinkClick(groupId: Long) {
-        _state.update { it.copy(linkEditor = LinkEditorState(groupId = groupId, url = it.url)) }
+        localState.update { it.copy(linkEditor = LinkEditorState(groupId = groupId, url = it.url)) }
     }
 
     fun onSaveEnteredLinkClick() {
-        val groups = _state.value.groups
+        val groups = uiState.value.groups
 
         when (groups.size) {
-            0 -> _state.update { it.copy(groupEditor = GroupEditorState()) }
+            0 -> localState.update { it.copy(groupEditor = GroupEditorState()) }
             1 -> onAddLinkClick(groups.first().id)
-            else -> _state.update { it.copy(shouldShowGroupPicker = true) }
+            else -> localState.update { it.copy(shouldShowGroupPicker = true) }
         }
     }
 
     fun onGroupPickedForEnteredLink(groupId: Long) {
-        _state.update {
+        localState.update {
             it.copy(
                 shouldShowGroupPicker = false,
                 linkEditor = LinkEditorState(groupId = groupId, url = it.url),
@@ -240,11 +271,11 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onDismissGroupPicker() {
-        _state.update { it.copy(shouldShowGroupPicker = false) }
+        localState.update { it.copy(shouldShowGroupPicker = false) }
     }
 
     fun onEditLinkClick(groupId: Long, link: SavedLink) {
-        _state.update {
+        localState.update {
             it.copy(
                 linkEditor = LinkEditorState(
                     groupId = groupId,
@@ -257,11 +288,11 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onDismissLinkEditor() {
-        _state.update { it.copy(linkEditor = null) }
+        localState.update { it.copy(linkEditor = null) }
     }
 
     fun onSaveLink(groupId: Long, name: String, url: String) {
-        val editor = _state.value.linkEditor
+        val editor = uiState.value.linkEditor
 
         viewModelScope.launch {
             if (editor?.linkId == null) {
@@ -270,24 +301,24 @@ class UrlOpenerViewModel @Inject constructor(
                 updateSavedLinkUseCase(groupId, editor.linkId, name, url)
             }
 
-            _state.update { it.copy(linkEditor = null) }
+            localState.update { it.copy(linkEditor = null) }
         }
     }
 
     fun onRequestDeleteLink(groupId: Long, linkId: Long) {
-        if (_state.value.shouldAskDeleteConfirmation) {
-            _state.update { it.copy(deleteTarget = DeleteTarget.Link(groupId, linkId)) }
+        if (uiState.value.shouldAskDeleteConfirmation) {
+            localState.update { it.copy(deleteTarget = DeleteTarget.Link(groupId, linkId)) }
         } else {
             deleteLink(groupId, linkId)
         }
     }
 
     fun onDismissDeleteConfirmation() {
-        _state.update { it.copy(deleteTarget = null) }
+        localState.update { it.copy(deleteTarget = null) }
     }
 
     fun onConfirmDelete() {
-        when (val target = _state.value.deleteTarget) {
+        when (val target = uiState.value.deleteTarget) {
             is DeleteTarget.Group -> deleteGroup(target.groupId)
             is DeleteTarget.Link -> deleteLink(target.groupId, target.linkId)
             null -> Unit
@@ -295,40 +326,40 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onSavedLinkClick(groupId: Long, linkId: Long) {
-        val link = _state.value.groups
+        val link = uiState.value.groups
             .firstOrNull { it.id == groupId }
             ?.links
             ?.firstOrNull { it.id == linkId }
             ?: return
 
-        if (_state.value.shouldAskOpenConfirmation) {
-            _state.update { it.copy(openTarget = OpenTarget(link)) }
+        if (uiState.value.shouldAskOpenConfirmation) {
+            localState.update { it.copy(openTarget = OpenTarget(link)) }
         } else {
             openUrl(link.url)
         }
     }
 
     fun onDismissOpenConfirmation() {
-        _state.update { it.copy(openTarget = null) }
+        localState.update { it.copy(openTarget = null) }
     }
 
     fun onConfirmOpenSavedLink() {
-        val link = _state.value.openTarget?.link ?: return
-        _state.update { it.copy(openTarget = null) }
+        val link = uiState.value.openTarget?.link ?: return
+        localState.update { it.copy(openTarget = null) }
         openUrl(link.url)
     }
 
     private fun deleteGroup(groupId: Long) {
         viewModelScope.launch {
             deleteLinkGroupUseCase(groupId)
-            _state.update { it.copy(deleteTarget = null) }
+            localState.update { it.copy(deleteTarget = null) }
         }
     }
 
     private fun deleteLink(groupId: Long, linkId: Long) {
         viewModelScope.launch {
             deleteSavedLinkUseCase(groupId, linkId)
-            _state.update { it.copy(deleteTarget = null) }
+            localState.update { it.copy(deleteTarget = null) }
         }
     }
 
@@ -337,9 +368,16 @@ class UrlOpenerViewModel @Inject constructor(
             val result = openUrlUseCase(url)
 
             if (result.isFailure) {
-                // A URL opening failure is a one-time message.
-                // Keeping it in screen state could show it again after Activity recreation.
-                events.send(UrlOpenerEvent.OpenUrlFailed)
+                val message = UserMessage(
+                    id = nextRequestId(),
+                    kind = UserMessageKind.OpenUrlFailed,
+                )
+
+                localState.update {
+                    it.copy(
+                        userMessage = message,
+                    )
+                }
             }
         }
     }
@@ -353,22 +391,50 @@ class UrlOpenerViewModel @Inject constructor(
 
             result.fold(
                 onSuccess = {
-                    events.send(UrlOpenerEvent.ShowTransferMessage(action.successMessage))
+                    showTransferMessage(action.successMessage)
                 },
                 onFailure = { error ->
                     if (error is DriveAuthorizationRequiredException) {
                         pendingDriveAction = action
-                        events.send(UrlOpenerEvent.RequestDriveAuthorization(error.pendingIntent))
+                        val request = DriveAuthorizationRequest(
+                            id = nextRequestId(),
+                            pendingIntent = error.pendingIntent,
+                        )
+
+                        localState.update {
+                            it.copy(
+                                driveAuthorizationRequest = request,
+                            )
+                        }
                     } else {
-                        events.send(UrlOpenerEvent.ShowTransferMessage(action.failureMessage))
+                        showTransferMessage(action.failureMessage)
                     }
                 },
             )
         }
     }
 
+    private fun showTransferMessage(message: TransferMessage) {
+        val userMessage = UserMessage(
+            id = nextRequestId(),
+            kind = UserMessageKind.Transfer(message),
+        )
+
+        localState.update {
+            it.copy(
+                userMessage = userMessage,
+            )
+        }
+    }
+
+    private fun nextRequestId(): Long {
+        return nextRequestId++
+    }
+
     private companion object {
         const val EXPORT_FILE_NAME = "url-opener-data.json"
+        const val INITIAL_REQUEST_ID = 1L
+        const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }
 

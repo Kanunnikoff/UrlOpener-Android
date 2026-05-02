@@ -15,25 +15,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.presentation.TransferMessage
-import software.kanunnikoff.urlopener.presentation.UrlOpenerEvent
 import software.kanunnikoff.urlopener.presentation.UrlOpenerState
+import software.kanunnikoff.urlopener.presentation.UserMessageKind
 import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
 
 /**
- * Connects ViewModel state and one-time events to the stateless screen.
+ * Connects ViewModel state and pending UI requests to the stateless screen.
  *
  * This layer owns Android-only feedback such as Toasts while leaving [UrlOpenerScreen] reusable for
  * previews and UI tests.
  *
  * @param state Complete immutable screen state to render.
- * @param events One-time UI events emitted by the ViewModel.
  * @param appVersionName Human-readable app version shown on the About tab.
  * @param appVersionCode Numeric build version shown on the About tab.
  * @param onTabSelected Called when the user selects a bottom-navigation tab.
@@ -64,7 +62,6 @@ import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
 @Composable
 fun UrlOpenerRoute(
     state: UrlOpenerState,
-    events: Flow<UrlOpenerEvent>,
     appVersionName: String,
     appVersionCode: Int,
     onTabSelected: (UrlOpenerTab) -> Unit,
@@ -80,6 +77,10 @@ fun UrlOpenerRoute(
     onJsonImported: (String, TransferMessage, TransferMessage) -> Unit,
     onTransferFinished: (TransferMessage) -> Unit,
     onDriveAuthorizationCompleted: (Boolean) -> Unit,
+    onExportJsonRequestHandled: (Long) -> Unit,
+    onImportJsonRequestHandled: (Long) -> Unit,
+    onDriveAuthorizationRequestHandled: (Long) -> Unit,
+    onUserMessageShown: (Long) -> Unit,
     onAddGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
@@ -149,32 +150,43 @@ fun UrlOpenerRoute(
         }
     }
 
-    LaunchedEffect(events) {
-        events.collect { event ->
-            when (event) {
-                UrlOpenerEvent.OpenUrlFailed -> {
+    state.exportJsonRequest?.let { request ->
+        LaunchedEffect(request.id) {
+            pendingExportJson = request.json
+            onExportJsonRequestHandled(request.id)
+            exportLauncher.launch(request.fileName)
+        }
+    }
+
+    state.importJsonRequestId?.let { requestId ->
+        LaunchedEffect(requestId) {
+            onImportJsonRequestHandled(requestId)
+            importLauncher.launch(arrayOf(JSON_MIME_TYPE))
+        }
+    }
+
+    state.driveAuthorizationRequest?.let { request ->
+        LaunchedEffect(request.id) {
+            onDriveAuthorizationRequestHandled(request.id)
+            driveAuthorizationLauncher.launch(
+                IntentSenderRequest.Builder(request.pendingIntent).build(),
+            )
+        }
+    }
+
+    state.userMessage?.let { message ->
+        LaunchedEffect(message.id) {
+            when (val kind = message.kind) {
+                UserMessageKind.OpenUrlFailed -> {
                     Toast.makeText(context, openUrlFailedMessage, Toast.LENGTH_SHORT).show()
                 }
 
-                is UrlOpenerEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
-
-                is UrlOpenerEvent.ExportJsonRequested -> {
-                    pendingExportJson = event.json
-                    exportLauncher.launch(event.fileName)
+                is UserMessageKind.Transfer -> {
+                    snackbarHostState.showSnackbar(context.getTransferMessage(kind.message))
                 }
-
-                UrlOpenerEvent.ImportJsonRequested -> importLauncher.launch(arrayOf(JSON_MIME_TYPE))
-
-                is UrlOpenerEvent.RequestDriveAuthorization -> {
-                    driveAuthorizationLauncher.launch(
-                        IntentSenderRequest.Builder(event.pendingIntent).build(),
-                    )
-                }
-
-                is UrlOpenerEvent.ShowTransferMessage -> snackbarHostState.showSnackbar(
-                    context.getTransferMessage(event.message),
-                )
             }
+
+            onUserMessageShown(message.id)
         }
     }
 

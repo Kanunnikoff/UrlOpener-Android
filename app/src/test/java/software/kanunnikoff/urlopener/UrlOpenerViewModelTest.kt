@@ -2,8 +2,11 @@ package software.kanunnikoff.urlopener
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -83,16 +86,22 @@ class UrlOpenerViewModelTest {
 
     @Test
     fun addGroupAndLinkShowsLinkInsideGroup() = runTest(dispatcher) {
+        val uiStateCollection = collectUiState(this)
+
         viewModel.onSaveGroup(name = "Работа", description = "Служебные ссылки")
         viewModel.onSaveLink(groupId = 1L, name = "Почта", url = "https://mail.example")
         advanceUntilIdle()
 
-        assertEquals("Работа", viewModel.state.value.groups.single().name)
-        assertEquals("Почта", viewModel.state.value.groups.single().links.single().name)
+        assertEquals("Работа", viewModel.uiState.value.groups.single().name)
+        assertEquals("Почта", viewModel.uiState.value.groups.single().links.single().name)
+
+        uiStateCollection.cancel()
     }
 
     @Test
     fun openConfirmationFlagDelaysOpeningSavedLink() = runTest(dispatcher) {
+        val uiStateCollection = collectUiState(this)
+
         settingsRepository.setShouldAskOpenConfirmation(true)
         viewModel.onSaveGroup(name = "Работа", description = "")
         viewModel.onSaveLink(groupId = 1L, name = "Почта", url = "https://mail.example")
@@ -105,6 +114,14 @@ class UrlOpenerViewModelTest {
         viewModel.onConfirmOpenSavedLink()
         advanceUntilIdle()
         assertEquals(listOf("https://mail.example"), urlOpenerRepository.openedUrls)
+
+        uiStateCollection.cancel()
+    }
+
+    private fun collectUiState(scope: TestScope): Job {
+        return scope.launch {
+            viewModel.uiState.collect {}
+        }
     }
 
     private class FakeLinkGroupsRepository : LinkGroupsRepository {
