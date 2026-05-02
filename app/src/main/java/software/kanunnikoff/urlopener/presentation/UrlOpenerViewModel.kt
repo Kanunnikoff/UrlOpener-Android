@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
+import software.kanunnikoff.urlopener.domain.repository.DriveAuthorizationRequiredException
 import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
@@ -60,6 +61,8 @@ class UrlOpenerViewModel @Inject constructor(
 
     private val events = Channel<UrlOpenerEvent>(Channel.BUFFERED)
     val eventFlow = events.receiveAsFlow()
+
+    private var pendingDriveAction: DriveAction? = null
 
     init {
         viewModelScope.launch {
@@ -128,24 +131,28 @@ class UrlOpenerViewModel @Inject constructor(
     }
 
     fun onSyncToDriveClick() {
-        viewModelScope.launch {
-            val message = exportBackupUseCase().fold(
-                onSuccess = { TransferMessage.DriveSyncCompleted },
-                onFailure = { TransferMessage.DriveSyncFailed },
-            )
-
-            events.send(UrlOpenerEvent.ShowTransferMessage(message))
-        }
+        performDriveAction(DriveAction.Export)
     }
 
     fun onSyncFromDriveClick() {
-        viewModelScope.launch {
-            val message = importBackupUseCase().fold(
-                onSuccess = { TransferMessage.DriveImportCompleted },
-                onFailure = { TransferMessage.DriveImportFailed },
-            )
+        performDriveAction(DriveAction.Import)
+    }
 
-            events.send(UrlOpenerEvent.ShowTransferMessage(message))
+    fun onDriveAuthorizationCompleted(success: Boolean) {
+        val action = pendingDriveAction
+        pendingDriveAction = null
+
+        if (success && action != null) {
+            performDriveAction(action)
+            return
+        }
+
+        viewModelScope.launch {
+            events.send(
+                UrlOpenerEvent.ShowTransferMessage(
+                    action?.failureMessage ?: TransferMessage.DriveSyncFailed,
+                ),
+            )
         }
     }
 
@@ -337,7 +344,44 @@ class UrlOpenerViewModel @Inject constructor(
         }
     }
 
+    private fun performDriveAction(action: DriveAction) {
+        viewModelScope.launch {
+            val result = when (action) {
+                DriveAction.Export -> exportBackupUseCase()
+                DriveAction.Import -> importBackupUseCase()
+            }
+
+            result.fold(
+                onSuccess = {
+                    events.send(UrlOpenerEvent.ShowTransferMessage(action.successMessage))
+                },
+                onFailure = { error ->
+                    if (error is DriveAuthorizationRequiredException) {
+                        pendingDriveAction = action
+                        events.send(UrlOpenerEvent.RequestDriveAuthorization(error.pendingIntent))
+                    } else {
+                        events.send(UrlOpenerEvent.ShowTransferMessage(action.failureMessage))
+                    }
+                },
+            )
+        }
+    }
+
     private companion object {
         const val EXPORT_FILE_NAME = "url-opener-data.json"
     }
+}
+
+private enum class DriveAction(
+    val successMessage: TransferMessage,
+    val failureMessage: TransferMessage,
+) {
+    Export(
+        successMessage = TransferMessage.DriveSyncCompleted,
+        failureMessage = TransferMessage.DriveSyncFailed,
+    ),
+    Import(
+        successMessage = TransferMessage.DriveImportCompleted,
+        failureMessage = TransferMessage.DriveImportFailed,
+    ),
 }

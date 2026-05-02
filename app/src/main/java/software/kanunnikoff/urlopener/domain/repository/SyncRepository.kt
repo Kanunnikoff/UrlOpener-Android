@@ -1,7 +1,9 @@
 package software.kanunnikoff.urlopener.domain.repository
 
+import android.app.PendingIntent
+
 /**
- * Saves and restores a data snapshot through Android system backup.
+ * Saves and restores a data snapshot through the app-private Google Drive storage.
  */
 interface SyncRepository {
 
@@ -9,3 +11,7 @@ interface SyncRepository {
 
     suspend fun importFromDrive(): Result<Unit>
 }
+
+class DriveAuthorizationRequiredException(
+    val pendingIntent: PendingIntent,
+) : IllegalStateException()

@@ -1,8 +1,10 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
+import android.app.Activity
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -77,6 +79,7 @@ fun UrlOpenerRoute(
     onSyncFromDriveClick: () -> Unit,
     onJsonImported: (String, TransferMessage, TransferMessage) -> Unit,
     onTransferFinished: (TransferMessage) -> Unit,
+    onDriveAuthorizationCompleted: (Boolean) -> Unit,
     onAddGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
@@ -100,6 +103,12 @@ fun UrlOpenerRoute(
     val context = LocalContext.current
     val openUrlFailedMessage = stringResource(R.string.open_url_failed_message)
     var pendingExportJson by remember { mutableStateOf<String?>(null) }
+
+    val driveAuthorizationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        onDriveAuthorizationCompleted(result.resultCode == Activity.RESULT_OK)
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(JSON_MIME_TYPE),
@@ -155,6 +164,12 @@ fun UrlOpenerRoute(
                 }
 
                 UrlOpenerEvent.ImportJsonRequested -> importLauncher.launch(arrayOf(JSON_MIME_TYPE))
+
+                is UrlOpenerEvent.RequestDriveAuthorization -> {
+                    driveAuthorizationLauncher.launch(
+                        IntentSenderRequest.Builder(event.pendingIntent).build(),
+                    )
+                }
 
                 is UrlOpenerEvent.ShowTransferMessage -> snackbarHostState.showSnackbar(
                     context.getTransferMessage(event.message),

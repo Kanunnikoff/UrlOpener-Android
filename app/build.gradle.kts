@@ -38,6 +38,11 @@ android {
         compose = true
     }
 
+    packaging {
+        resources.excludes += "META-INF/INDEX.LIST"
+        resources.excludes += "META-INF/DEPENDENCIES"
+    }
+
     namespace = "software.kanunnikoff.urlopener"
 }
 
@@ -49,7 +54,12 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.google.api.client.android)
+    implementation(libs.google.api.services.drive)
+    implementation(libs.google.http.client.gson)
+    implementation(libs.google.play.services.auth)
     implementation(libs.hilt.android)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

@@ -4,7 +4,7 @@ import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.SyncRepository
 
 /**
- * Marks a fresh data snapshot for system sync with Google Drive.
+ * Uploads a fresh data snapshot to Google Drive app data storage.
  */
 class ExportBackupUseCase @Inject constructor(
     private val syncRepository: SyncRepository,
@@ -16,7 +16,7 @@ class ExportBackupUseCase @Inject constructor(
 }
 
 /**
- * Restores data from the local snapshot that Android receives through system backup.
+ * Restores data from Google Drive app data storage.
  */
 class ImportBackupUseCase @Inject constructor(
     private val syncRepository: SyncRepository,

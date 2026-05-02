@@ -58,9 +58,11 @@
     <string name="export_failed_message">Could not export JSON file</string>
     <string name="import_completed_message">JSON file imported</string>
     <string name="import_failed_message">Could not import JSON file</string>
-    <string name="drive_sync_completed_message">Backup saved and marked for Google Drive sync</string>
-    <string name="drive_sync_failed_message">Could not prepare Google Drive backup</string>
-    <string name="drive_import_completed_message">Data restored from backup</string>
-    <string name="drive_import_failed_message">Could not restore backup</string>
-    <string name="backup_missing">The backup has not been created yet. Android syncs it with Google Drive through system backup.</string>
+    <string name="drive_sync_completed_message">Data saved to Google Drive</string>
+    <string name="drive_sync_failed_message">Could not save data to Google Drive</string>
+    <string name="drive_import_completed_message">Data restored from Google Drive</string>
+    <string name="drive_import_failed_message">Could not restore data from Google Drive</string>
+    <string name="backup_missing">The Google Drive backup has not been created yet.</string>
+    <string name="drive_auth_token_missing">Google Drive did not return an access token.</string>
+    <string name="drive_auth_resolution_missing">Google Drive did not return an authorization action.</string>
 </resources>

@@ -1,5 +1,7 @@
 package software.kanunnikoff.urlopener.presentation
 
+import android.app.PendingIntent
+
 /**
  * One-time messages that the screen handles outside persistent state.
  */
@@ -8,6 +10,7 @@ sealed interface UrlOpenerEvent {
     data object OpenUrlFailed : UrlOpenerEvent
     data class ExportJsonRequested(val fileName: String, val json: String) : UrlOpenerEvent
     data object ImportJsonRequested : UrlOpenerEvent
+    data class RequestDriveAuthorization(val pendingIntent: PendingIntent) : UrlOpenerEvent
     data class ShowTransferMessage(val message: TransferMessage) : UrlOpenerEvent
 }
 

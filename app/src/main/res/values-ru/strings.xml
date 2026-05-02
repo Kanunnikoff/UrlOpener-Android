@@ -58,9 +58,11 @@
     <string name="export_failed_message">Не удалось выгрузить JSON-файл</string>
     <string name="import_completed_message">JSON-файл загружен</string>
     <string name="import_failed_message">Не удалось загрузить JSON-файл</string>
-    <string name="drive_sync_completed_message">Резервная копия сохранена и помечена для синхронизации с Google Drive</string>
-    <string name="drive_sync_failed_message">Не удалось подготовить резервную копию для Google Drive</string>
-    <string name="drive_import_completed_message">Данные восстановлены из резервной копии</string>
-    <string name="drive_import_failed_message">Не удалось восстановить резервную копию</string>
-    <string name="backup_missing">Резервная копия ещё не создана. Android синхронизирует её с Google Drive через системное резервное копирование.</string>
+    <string name="drive_sync_completed_message">Данные сохранены в Google Drive</string>
+    <string name="drive_sync_failed_message">Не удалось сохранить данные в Google Drive</string>
+    <string name="drive_import_completed_message">Данные восстановлены из Google Drive</string>
+    <string name="drive_import_failed_message">Не удалось восстановить данные из Google Drive</string>
+    <string name="backup_missing">Резервная копия в Google Drive ещё не создана.</string>
+    <string name="drive_auth_token_missing">Google Drive не вернул токен доступа.</string>
+    <string name="drive_auth_resolution_missing">Google Drive не вернул действие для авторизации.</string>
 </resources>

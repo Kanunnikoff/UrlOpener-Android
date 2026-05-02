@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
                     onSyncFromDriveClick = viewModel::onSyncFromDriveClick,
                     onJsonImported = viewModel::onJsonImported,
                     onTransferFinished = viewModel::onTransferFinished,
+                    onDriveAuthorizationCompleted = viewModel::onDriveAuthorizationCompleted,
                     onAddGroupClick = viewModel::onAddGroupClick,
                     onEditGroupClick = viewModel::onEditGroupClick,
                     onRequestDeleteGroup = viewModel::onRequestDeleteGroup,
