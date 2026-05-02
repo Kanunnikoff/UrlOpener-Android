@@ -26,21 +26,23 @@ class AndroidLinkGroupsRepository(
         }
 
     override suspend fun addGroup(name: String, description: String) {
+        val now = System.currentTimeMillis()
         dao.insertGroup(
             LinkGroupEntity(
                 name = name.trim(),
                 description = description.trim(),
+                createdAt = now,
+                updatedAt = now,
             ),
         )
     }
 
     override suspend fun updateGroup(groupId: Long, name: String, description: String) {
         dao.updateGroup(
-            LinkGroupEntity(
-                id = groupId,
-                name = name.trim(),
-                description = description.trim(),
-            ),
+            groupId = groupId,
+            name = name.trim(),
+            description = description.trim(),
+            updatedAt = System.currentTimeMillis(),
         )
     }
 
@@ -49,23 +51,25 @@ class AndroidLinkGroupsRepository(
     }
 
     override suspend fun addLink(groupId: Long, name: String, url: String) {
+        val now = System.currentTimeMillis()
         dao.insertLink(
             SavedLinkEntity(
                 groupId = groupId,
                 name = name.trim(),
                 url = url.trim(),
+                createdAt = now,
+                updatedAt = now,
             ),
         )
     }
 
     override suspend fun updateLink(groupId: Long, linkId: Long, name: String, url: String) {
         dao.updateLink(
-            SavedLinkEntity(
-                id = linkId,
-                groupId = groupId,
-                name = name.trim(),
-                url = url.trim(),
-            ),
+            groupId = groupId,
+            linkId = linkId,
+            name = name.trim(),
+            url = url.trim(),
+            updatedAt = System.currentTimeMillis(),
         )
     }
 
@@ -80,11 +84,15 @@ class AndroidLinkGroupsRepository(
             id = group.id,
             name = group.name,
             description = group.description,
-            links = links.map {
+            createdAt = group.createdAt,
+            updatedAt = group.updatedAt,
+            links = links.sortedByDescending { it.createdAt }.map {
                 SavedLink(
                     id = it.id,
                     name = it.name,
                     url = it.url,
+                    createdAt = it.createdAt,
+                    updatedAt = it.updatedAt,
                 )
             },
         )

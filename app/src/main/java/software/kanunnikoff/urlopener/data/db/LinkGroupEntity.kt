@@ -12,4 +12,6 @@ data class LinkGroupEntity(
     val id: Long = 0L,
     val name: String,
     val description: String,
+    val createdAt: Long,
+    val updatedAt: Long,
 )

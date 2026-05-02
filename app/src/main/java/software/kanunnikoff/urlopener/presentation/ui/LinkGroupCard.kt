@@ -1,11 +1,16 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
@@ -13,15 +18,18 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,11 +62,16 @@ internal fun LinkGroupCard(
     onRequestDeleteLink: (Long, Long) -> Unit,
     onSavedLinkClick: (Long, Long) -> Unit,
 ) {
-    Card(
+    val accentColor = FriendlyCardDefaults.groupAccentColor(group.id)
+
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
@@ -67,9 +80,18 @@ internal fun LinkGroupCard(
                     .clickable(onClick = onGroupClick),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .width(6.dp)
+                        .height(44.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(accentColor),
+                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = group.name,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                     if (group.description.isNotBlank()) {
@@ -79,6 +101,18 @@ internal fun LinkGroupCard(
                         )
                     }
                 }
+                Surface(
+                    color = accentColor.copy(alpha = 0.16f),
+                    contentColor = accentColor,
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Text(
+                        text = group.links.size.toString(),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
                 Icon(
                     imageVector = if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
                     contentDescription = if (isExpanded) {
@@ -86,18 +120,21 @@ internal fun LinkGroupCard(
                     } else {
                         stringResource(R.string.expand_group)
                     },
-                    modifier = Modifier.padding(horizontal = 4.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 6.dp),
                 )
                 IconButton(onClick = { onAddLinkClick(group.id) }) {
                     Icon(
                         imageVector = Icons.Outlined.Add,
                         contentDescription = stringResource(R.string.add_link),
+                        tint = accentColor,
                     )
                 }
                 IconButton(onClick = { onEditGroupClick(group) }) {
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.edit_group),
+                        tint = MaterialTheme.colorScheme.secondary,
                     )
                 }
                 IconButton(onClick = { onRequestDeleteGroup(group.id) }) {
@@ -111,7 +148,11 @@ internal fun LinkGroupCard(
             if (isExpanded) {
                 HorizontalDivider()
                 if (group.links.isEmpty()) {
-                    Text(text = stringResource(R.string.empty_links_message))
+                    Text(
+                        text = stringResource(R.string.empty_links_message),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
                 } else {
                     group.links.forEachIndexed { index, link ->
                         SavedLinkRow(
@@ -148,23 +189,38 @@ private fun SavedLinkRow(
     onRequestDeleteLink: (Long, Long) -> Unit,
     onSavedLinkClick: (Long, Long) -> Unit,
 ) {
+    val accentColor = FriendlyCardDefaults.groupAccentColor(groupId)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSavedLinkClick(groupId, link.id) }
-            .padding(vertical = 4.dp),
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Link,
-            contentDescription = null,
-            modifier = Modifier.padding(end = 8.dp),
-        )
+        Surface(
+            color = accentColor.copy(alpha = 0.14f),
+            contentColor = accentColor,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.padding(end = 10.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Link,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(18.dp),
+            )
+        }
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = link.name)
+            Text(
+                text = link.name,
+                fontWeight = FontWeight.SemiBold,
+            )
             Text(
                 text = link.url,
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = { onEditLinkClick(groupId, link) }) {

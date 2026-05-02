@@ -29,4 +29,6 @@ data class SavedLinkEntity(
     val groupId: Long,
     val name: String,
     val url: String,
+    val createdAt: Long,
+    val updatedAt: Long,
 )

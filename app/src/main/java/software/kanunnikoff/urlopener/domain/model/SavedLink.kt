@@ -7,4 +7,6 @@ data class SavedLink(
     val id: Long = 0L,
     val name: String,
     val url: String,
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L,
 )

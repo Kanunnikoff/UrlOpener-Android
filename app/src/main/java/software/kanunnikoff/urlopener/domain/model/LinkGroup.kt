@@ -10,5 +10,7 @@ data class LinkGroup(
     val id: Long = 0L,
     val name: String,
     val description: String,
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L,
     val links: List<SavedLink> = emptyList(),
 )

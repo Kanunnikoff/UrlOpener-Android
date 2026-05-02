@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,14 +16,20 @@ import kotlinx.coroutines.flow.Flow
 interface LinkGroupsDao {
 
     @Transaction
-    @Query("SELECT * FROM link_groups ORDER BY name")
+    @Query("SELECT * FROM link_groups ORDER BY createdAt DESC")
     fun observeGroups(): Flow<List<GroupWithLinks>>
 
     @Insert
     suspend fun insertGroup(group: LinkGroupEntity)
 
-    @Update
-    suspend fun updateGroup(group: LinkGroupEntity)
+    @Query(
+        """
+        UPDATE link_groups
+        SET name = :name, description = :description, updatedAt = :updatedAt
+        WHERE id = :groupId
+        """,
+    )
+    suspend fun updateGroup(groupId: Long, name: String, description: String, updatedAt: Long)
 
     @Query("DELETE FROM link_groups WHERE id = :groupId")
     suspend fun deleteGroup(groupId: Long)
@@ -32,8 +37,14 @@ interface LinkGroupsDao {
     @Insert
     suspend fun insertLink(link: SavedLinkEntity)
 
-    @Update
-    suspend fun updateLink(link: SavedLinkEntity)
+    @Query(
+        """
+        UPDATE saved_links
+        SET name = :name, url = :url, updatedAt = :updatedAt
+        WHERE id = :linkId AND groupId = :groupId
+        """,
+    )
+    suspend fun updateLink(groupId: Long, linkId: Long, name: String, url: String, updatedAt: Long)
 
     @Query("DELETE FROM saved_links WHERE id = :linkId AND groupId = :groupId")
     suspend fun deleteLink(groupId: Long, linkId: Long)

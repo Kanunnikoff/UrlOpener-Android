@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -12,15 +13,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -78,7 +88,7 @@ internal fun HomeScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
-    val listPadding = contentPadding.withAdditionalPadding(20.dp)
+    val listPadding = contentPadding.withAdditionalPadding(16.dp)
     var expandedGroupIds by rememberSaveable { mutableStateOf(emptySet<Long>()) }
 
     Column(
@@ -88,6 +98,8 @@ internal fun HomeScreen(
             .padding(listPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        ScreenTitle(text = stringResource(R.string.app_name))
+
         UrlInputBlock(
             url = state.url,
             onUrlChanged = onUrlChanged,
@@ -96,20 +108,7 @@ internal fun HomeScreen(
             onSaveEnteredLinkClick = onSaveEnteredLinkClick,
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.saved_links_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            TextButton(onClick = onAddGroupClick) {
-                Text(stringResource(R.string.add_group))
-            }
-        }
+        SavedLinksHeader(onAddGroupClick = onAddGroupClick)
 
         if (state.groups.isEmpty()) {
             EmptyGroupsContent(
@@ -122,6 +121,7 @@ internal fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
+                contentPadding = PaddingValues(vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(
@@ -161,33 +161,41 @@ internal fun HomeScreen(
 private fun EmptyGroupsContent(
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    Surface(
         modifier = modifier,
-        contentAlignment = Alignment.Center,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        tonalElevation = 0.dp,
+        shadowElevation = 2.dp,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(horizontal = 20.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.LinkOff,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(72.dp),
-            )
-            Text(
-                text = stringResource(R.string.empty_groups_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = stringResource(R.string.empty_groups_message),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(horizontal = 24.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LinkOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(72.dp),
+                )
+                Text(
+                    text = stringResource(R.string.empty_groups_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.empty_groups_message),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
@@ -229,49 +237,108 @@ private fun UrlInputBlock(
 ) {
     val hasUrl = url.isNotBlank()
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = 0.dp,
+        shadowElevation = 2.dp,
     ) {
-        OutlinedTextField(
-            value = url,
-            onValueChange = onUrlChanged,
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
-            maxLines = 3,
-            label = { Text(stringResource(R.string.url_input_description)) },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Default,
-            ),
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Button(
-                enabled = hasUrl,
-                onClick = onClearClick,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(stringResource(R.string.clear_button))
-            }
+            OutlinedTextField(
+                value = url,
+                onValueChange = onUrlChanged,
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 3,
+                label = { Text(stringResource(R.string.url_input_description)) },
+                trailingIcon = {
+                    if (hasUrl) {
+                        IconButton(onClick = onClearClick) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.clear_button),
+                            )
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    imeAction = ImeAction.Default,
+                ),
+            )
 
-            Button(
-                enabled = hasUrl,
-                onClick = onOpenClick,
-                modifier = Modifier.weight(1f),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(stringResource(R.string.open_button))
-            }
+                FilledTonalButton(
+                    enabled = hasUrl,
+                    onClick = onSaveEnteredLinkClick,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.save_button))
+                }
 
-            Button(
-                enabled = hasUrl,
-                onClick = onSaveEnteredLinkClick,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(stringResource(R.string.save_button))
+                Button(
+                    enabled = hasUrl,
+                    onClick = onOpenClick,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Link,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.open_button))
+                }
             }
+        }
+    }
+}
+
+/**
+ * Section header for the saved-link list.
+ *
+ * @param onAddGroupClick Called when the user starts creating a new group.
+ */
+@Composable
+private fun SavedLinksHeader(
+    onAddGroupClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.saved_links_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        TextButton(
+            onClick = onAddGroupClick,
+            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.secondary,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(stringResource(R.string.add_group))
         }
     }
 }
