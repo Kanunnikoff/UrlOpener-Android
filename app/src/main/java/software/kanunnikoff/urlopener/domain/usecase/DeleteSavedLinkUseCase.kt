@@ -1,11 +1,12 @@
 package software.kanunnikoff.urlopener.domain.usecase
 
+import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
 /**
  * Deletes a saved link from a group.
  */
-class DeleteSavedLinkUseCase(
+class DeleteSavedLinkUseCase @Inject constructor(
     private val repository: LinkGroupsRepository,
 ) {
 

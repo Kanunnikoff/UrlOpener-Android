@@ -1,11 +1,12 @@
 package software.kanunnikoff.urlopener.domain.usecase
 
+import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
 /**
  * Updates the name and description of an existing group.
  */
-class UpdateLinkGroupUseCase(
+class UpdateLinkGroupUseCase @Inject constructor(
     private val repository: LinkGroupsRepository,
 ) {
 

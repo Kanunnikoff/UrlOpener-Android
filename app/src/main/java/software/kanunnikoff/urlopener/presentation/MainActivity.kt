@@ -7,77 +7,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.room.Room
+import dagger.hilt.android.AndroidEntryPoint
 import software.kanunnikoff.urlopener.BuildConfig
-import software.kanunnikoff.urlopener.data.AndroidLinkGroupsRepository
-import software.kanunnikoff.urlopener.data.AndroidSettingsRepository
-import software.kanunnikoff.urlopener.data.AndroidUrlOpenerRepository
-import software.kanunnikoff.urlopener.data.GoogleDriveSyncRepository
-import software.kanunnikoff.urlopener.data.db.UrlOpenerDatabase
-import software.kanunnikoff.urlopener.domain.service.LinkGroupsJsonCodec
-import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
-import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
-import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
-import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ExportBackupUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ExportLinkGroupsJsonUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ImportBackupUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ImportLinkGroupsJsonUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
-import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
-import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
-import software.kanunnikoff.urlopener.domain.usecase.SetDeleteConfirmationUseCase
-import software.kanunnikoff.urlopener.domain.usecase.SetOpenConfirmationUseCase
-import software.kanunnikoff.urlopener.domain.usecase.UpdateLinkGroupUseCase
-import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 import software.kanunnikoff.urlopener.presentation.theme.UrlOpenerTheme
 import software.kanunnikoff.urlopener.presentation.ui.UrlOpenerRoute
 
 /**
  * Application entry point that wires persistence, domain use cases, and the Compose screen.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: UrlOpenerViewModel by viewModels {
-        val settingsRepository = AndroidSettingsRepository(applicationContext)
-
-        val database = Room.databaseBuilder(
-            context = applicationContext,
-            klass = UrlOpenerDatabase::class.java,
-            name = "url_opener.db",
-        ).build()
-
-        val linkGroupsRepository = AndroidLinkGroupsRepository(dao = database.linkGroupsDao())
-        val linkGroupsJsonCodec = LinkGroupsJsonCodec()
-        val syncRepository = GoogleDriveSyncRepository(
-            context = applicationContext,
-            linkGroupsRepository = linkGroupsRepository,
-            codec = linkGroupsJsonCodec,
-        )
-
-        UrlOpenerViewModelFactory(
-            openUrlUseCase = OpenUrlUseCase(
-                repository = AndroidUrlOpenerRepository(applicationContext),
-            ),
-            observeSettingsUseCase = ObserveSettingsUseCase(settingsRepository),
-            setDeleteConfirmationUseCase = SetDeleteConfirmationUseCase(settingsRepository),
-            setOpenConfirmationUseCase = SetOpenConfirmationUseCase(settingsRepository),
-            observeLinkGroupsUseCase = ObserveLinkGroupsUseCase(linkGroupsRepository),
-            addLinkGroupUseCase = AddLinkGroupUseCase(linkGroupsRepository),
-            updateLinkGroupUseCase = UpdateLinkGroupUseCase(linkGroupsRepository),
-            deleteLinkGroupUseCase = DeleteLinkGroupUseCase(linkGroupsRepository),
-            addSavedLinkUseCase = AddSavedLinkUseCase(linkGroupsRepository),
-            updateSavedLinkUseCase = UpdateSavedLinkUseCase(linkGroupsRepository),
-            deleteSavedLinkUseCase = DeleteSavedLinkUseCase(linkGroupsRepository),
-            exportLinkGroupsJsonUseCase = ExportLinkGroupsJsonUseCase(linkGroupsJsonCodec),
-            importLinkGroupsJsonUseCase = ImportLinkGroupsJsonUseCase(
-                repository = linkGroupsRepository,
-                codec = linkGroupsJsonCodec,
-            ),
-            exportBackupUseCase = ExportBackupUseCase(syncRepository),
-            importBackupUseCase = ImportBackupUseCase(syncRepository),
-        )
-    }
+    private val viewModel: UrlOpenerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

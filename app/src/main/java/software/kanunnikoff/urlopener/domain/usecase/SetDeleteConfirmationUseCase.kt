@@ -1,11 +1,12 @@
 package software.kanunnikoff.urlopener.domain.usecase
 
+import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.SettingsRepository
 
 /**
  * Persists whether destructive actions should ask for confirmation.
  */
-class SetDeleteConfirmationUseCase(
+class SetDeleteConfirmationUseCase @Inject constructor(
     private val repository: SettingsRepository,
 ) {
 

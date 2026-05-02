@@ -3,9 +3,11 @@ package software.kanunnikoff.urlopener.data
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import software.kanunnikoff.urlopener.domain.repository.UrlOpenerRepository
+import javax.inject.Inject
 
 /**
  * Opens links through Android's activity resolution system.
@@ -13,7 +15,8 @@ import software.kanunnikoff.urlopener.domain.repository.UrlOpenerRepository
  * The repository is kept behind the domain interface so the rest of the app can request URL opening
  * without depending on Android framework classes.
  */
-class AndroidUrlOpenerRepository(
+class AndroidUrlOpenerRepository @Inject constructor(
+    @param:ApplicationContext
     private val context: Context,
 ) : UrlOpenerRepository {
 

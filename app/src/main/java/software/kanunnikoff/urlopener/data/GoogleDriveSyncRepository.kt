@@ -2,6 +2,7 @@ package software.kanunnikoff.urlopener.data
 
 import android.app.backup.BackupManager
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -10,11 +11,13 @@ import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 import software.kanunnikoff.urlopener.domain.repository.SyncRepository
 import software.kanunnikoff.urlopener.domain.service.LinkGroupsJsonCodec
 import java.io.File
+import javax.inject.Inject
 
 /**
  * Synchronizes a portable data snapshot through Android system backup.
  */
-class GoogleDriveSyncRepository(
+class GoogleDriveSyncRepository @Inject constructor(
+    @param:ApplicationContext
     private val context: Context,
     private val linkGroupsRepository: LinkGroupsRepository,
     private val codec: LinkGroupsJsonCodec,

@@ -2,6 +2,7 @@ package software.kanunnikoff.urlopener.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,7 @@ import software.kanunnikoff.urlopener.domain.usecase.SetOpenConfirmationUseCase
 import software.kanunnikoff.urlopener.domain.usecase.UpdateLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.UpdateSavedLinkUseCase
 import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
+import javax.inject.Inject
 
 /**
  * Coordinates user actions, persistent settings, saved links, and one-time UI events.
@@ -34,7 +36,8 @@ import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
  * through a channel so messages such as failed URL openings are not replayed after configuration
  * changes.
  */
-class UrlOpenerViewModel(
+@HiltViewModel
+class UrlOpenerViewModel @Inject constructor(
     private val openUrlUseCase: OpenUrlUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
     private val setDeleteConfirmationUseCase: SetDeleteConfirmationUseCase,

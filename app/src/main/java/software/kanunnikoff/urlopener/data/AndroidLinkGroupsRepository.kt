@@ -9,6 +9,7 @@ import software.kanunnikoff.urlopener.data.db.SavedLinkEntity
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
+import javax.inject.Inject
 
 /**
  * Room-backed implementation of [LinkGroupsRepository].
@@ -16,7 +17,7 @@ import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
  * The repository trims user-entered text before storage and maps database records to domain models
  * so presentation code never depends on Room annotations or table shapes.
  */
-class AndroidLinkGroupsRepository(
+class AndroidLinkGroupsRepository @Inject constructor(
     private val dao: LinkGroupsDao,
 ) : LinkGroupsRepository {
 

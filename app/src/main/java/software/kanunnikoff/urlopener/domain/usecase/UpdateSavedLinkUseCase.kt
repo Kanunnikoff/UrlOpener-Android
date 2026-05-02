@@ -1,11 +1,12 @@
 package software.kanunnikoff.urlopener.domain.usecase
 
+import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 
 /**
  * Updates a saved link inside a specific group.
  */
-class UpdateSavedLinkUseCase(
+class UpdateSavedLinkUseCase @Inject constructor(
     private val repository: LinkGroupsRepository,
 ) {
 

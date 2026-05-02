@@ -5,11 +5,12 @@ import org.json.JSONException
 import org.json.JSONObject
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
+import javax.inject.Inject
 
 /**
  * Encodes and reads portable JSON without depending on Room identifiers.
  */
-class LinkGroupsJsonCodec {
+class LinkGroupsJsonCodec @Inject constructor() {
 
     fun encode(groups: List<LinkGroup>): String {
         val root = JSONObject()

@@ -1,11 +1,12 @@
 package software.kanunnikoff.urlopener.domain.usecase
 
+import javax.inject.Inject
 import software.kanunnikoff.urlopener.domain.repository.SyncRepository
 
 /**
  * Marks a fresh data snapshot for system sync with Google Drive.
  */
-class ExportBackupUseCase(
+class ExportBackupUseCase @Inject constructor(
     private val syncRepository: SyncRepository,
 ) {
 
@@ -17,7 +18,7 @@ class ExportBackupUseCase(
 /**
  * Restores data from the local snapshot that Android receives through system backup.
  */
-class ImportBackupUseCase(
+class ImportBackupUseCase @Inject constructor(
     private val syncRepository: SyncRepository,
 ) {
 
