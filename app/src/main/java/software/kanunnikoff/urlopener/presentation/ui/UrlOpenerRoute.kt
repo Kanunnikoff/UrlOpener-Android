@@ -1,16 +1,25 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.Flow
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 import software.kanunnikoff.urlopener.R
 import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
+import software.kanunnikoff.urlopener.presentation.TransferMessage
 import software.kanunnikoff.urlopener.presentation.UrlOpenerEvent
 import software.kanunnikoff.urlopener.presentation.UrlOpenerState
 import software.kanunnikoff.urlopener.presentation.model.UrlOpenerTab
@@ -62,6 +71,12 @@ fun UrlOpenerRoute(
     onOpenClick: () -> Unit,
     onDeleteConfirmationChanged: (Boolean) -> Unit,
     onOpenConfirmationChanged: (Boolean) -> Unit,
+    onExportJsonClick: () -> Unit,
+    onImportJsonClick: () -> Unit,
+    onSyncToDriveClick: () -> Unit,
+    onSyncFromDriveClick: () -> Unit,
+    onJsonImported: (String, TransferMessage, TransferMessage) -> Unit,
+    onTransferFinished: (TransferMessage) -> Unit,
     onAddGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
@@ -84,6 +99,46 @@ fun UrlOpenerRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val openUrlFailedMessage = stringResource(R.string.open_url_failed_message)
+    var pendingExportJson by remember { mutableStateOf<String?>(null) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument(JSON_MIME_TYPE),
+    ) { uri ->
+        val json = pendingExportJson
+        pendingExportJson = null
+
+        if (uri == null || json == null) {
+            return@rememberLauncherForActivityResult
+        }
+
+        val message = if (context.writeText(uri, json)) {
+            TransferMessage.ExportCompleted
+        } else {
+            TransferMessage.ExportFailed
+        }
+
+        onTransferFinished(message)
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) {
+            return@rememberLauncherForActivityResult
+        }
+
+        val json = context.readText(uri)
+
+        if (json == null) {
+            onTransferFinished(TransferMessage.ImportFailed)
+        } else {
+            onJsonImported(
+                json,
+                TransferMessage.ImportCompleted,
+                TransferMessage.ImportFailed,
+            )
+        }
+    }
 
     LaunchedEffect(events) {
         events.collect { event ->
@@ -93,6 +148,17 @@ fun UrlOpenerRoute(
                 }
 
                 is UrlOpenerEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
+
+                is UrlOpenerEvent.ExportJsonRequested -> {
+                    pendingExportJson = event.json
+                    exportLauncher.launch(event.fileName)
+                }
+
+                UrlOpenerEvent.ImportJsonRequested -> importLauncher.launch(arrayOf(JSON_MIME_TYPE))
+
+                is UrlOpenerEvent.ShowTransferMessage -> snackbarHostState.showSnackbar(
+                    context.getTransferMessage(event.message),
+                )
             }
         }
     }
@@ -108,6 +174,10 @@ fun UrlOpenerRoute(
         onOpenClick = onOpenClick,
         onDeleteConfirmationChanged = onDeleteConfirmationChanged,
         onOpenConfirmationChanged = onOpenConfirmationChanged,
+        onExportJsonClick = onExportJsonClick,
+        onImportJsonClick = onImportJsonClick,
+        onSyncToDriveClick = onSyncToDriveClick,
+        onSyncFromDriveClick = onSyncFromDriveClick,
         onAddGroupClick = onAddGroupClick,
         onEditGroupClick = onEditGroupClick,
         onRequestDeleteGroup = onRequestDeleteGroup,
@@ -127,4 +197,45 @@ fun UrlOpenerRoute(
         onConfirmOpenSavedLink = onConfirmOpenSavedLink,
         onDismissOpenConfirmation = onDismissOpenConfirmation,
     )
+}
+
+private const val JSON_MIME_TYPE = "application/json"
+
+private fun android.content.Context.writeText(uri: Uri, text: String): Boolean {
+    return try {
+        contentResolver.openOutputStream(uri)?.use { output ->
+            output.write(text.toByteArray(StandardCharsets.UTF_8))
+        } != null
+    } catch (exception: IOException) {
+        false
+    } catch (exception: SecurityException) {
+        false
+    }
+}
+
+private fun android.content.Context.readText(uri: Uri): String? {
+    return try {
+        contentResolver.openInputStream(uri)?.use { input ->
+            input.readBytes().toString(StandardCharsets.UTF_8)
+        }
+    } catch (exception: IOException) {
+        null
+    } catch (exception: SecurityException) {
+        null
+    }
+}
+
+private fun android.content.Context.getTransferMessage(message: TransferMessage): String {
+    val stringRes = when (message) {
+        TransferMessage.ExportCompleted -> R.string.export_completed_message
+        TransferMessage.ExportFailed -> R.string.export_failed_message
+        TransferMessage.ImportCompleted -> R.string.import_completed_message
+        TransferMessage.ImportFailed -> R.string.import_failed_message
+        TransferMessage.DriveSyncCompleted -> R.string.drive_sync_completed_message
+        TransferMessage.DriveSyncFailed -> R.string.drive_sync_failed_message
+        TransferMessage.DriveImportCompleted -> R.string.drive_import_completed_message
+        TransferMessage.DriveImportFailed -> R.string.drive_import_failed_message
+    }
+
+    return getString(stringRes)
 }

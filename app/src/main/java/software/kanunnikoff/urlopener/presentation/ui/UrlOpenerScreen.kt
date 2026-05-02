@@ -66,6 +66,10 @@ fun UrlOpenerScreen(
     onOpenClick: () -> Unit,
     onDeleteConfirmationChanged: (Boolean) -> Unit,
     onOpenConfirmationChanged: (Boolean) -> Unit,
+    onExportJsonClick: () -> Unit,
+    onImportJsonClick: () -> Unit,
+    onSyncToDriveClick: () -> Unit,
+    onSyncFromDriveClick: () -> Unit,
     onAddGroupClick: () -> Unit,
     onEditGroupClick: (LinkGroup) -> Unit,
     onRequestDeleteGroup: (Long) -> Unit,
@@ -120,6 +124,10 @@ fun UrlOpenerScreen(
                 shouldAskOpenConfirmation = state.shouldAskOpenConfirmation,
                 onDeleteConfirmationChanged = onDeleteConfirmationChanged,
                 onOpenConfirmationChanged = onOpenConfirmationChanged,
+                onExportJsonClick = onExportJsonClick,
+                onImportJsonClick = onImportJsonClick,
+                onSyncToDriveClick = onSyncToDriveClick,
+                onSyncFromDriveClick = onSyncFromDriveClick,
                 modifier = Modifier
                     .padding(paddingValues)
                     .consumeWindowInsets(paddingValues),

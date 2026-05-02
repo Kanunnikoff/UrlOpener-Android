@@ -14,6 +14,10 @@ import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportLinkGroupsJsonUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportLinkGroupsJsonUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
@@ -42,6 +46,10 @@ class UrlOpenerViewModel(
     private val addSavedLinkUseCase: AddSavedLinkUseCase,
     private val updateSavedLinkUseCase: UpdateSavedLinkUseCase,
     private val deleteSavedLinkUseCase: DeleteSavedLinkUseCase,
+    private val exportLinkGroupsJsonUseCase: ExportLinkGroupsJsonUseCase,
+    private val importLinkGroupsJsonUseCase: ImportLinkGroupsJsonUseCase,
+    private val exportBackupUseCase: ExportBackupUseCase,
+    private val importBackupUseCase: ImportBackupUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UrlOpenerState())
@@ -96,6 +104,63 @@ class UrlOpenerViewModel(
     fun onOpenConfirmationChanged(shouldAsk: Boolean) {
         viewModelScope.launch {
             setOpenConfirmationUseCase(shouldAsk)
+        }
+    }
+
+    fun onExportJsonClick() {
+        viewModelScope.launch {
+            events.send(
+                UrlOpenerEvent.ExportJsonRequested(
+                    fileName = EXPORT_FILE_NAME,
+                    json = exportLinkGroupsJsonUseCase(_state.value.groups),
+                ),
+            )
+        }
+    }
+
+    fun onImportJsonClick() {
+        viewModelScope.launch {
+            events.send(UrlOpenerEvent.ImportJsonRequested)
+        }
+    }
+
+    fun onSyncToDriveClick() {
+        viewModelScope.launch {
+            val message = exportBackupUseCase().fold(
+                onSuccess = { TransferMessage.DriveSyncCompleted },
+                onFailure = { TransferMessage.DriveSyncFailed },
+            )
+
+            events.send(UrlOpenerEvent.ShowTransferMessage(message))
+        }
+    }
+
+    fun onSyncFromDriveClick() {
+        viewModelScope.launch {
+            val message = importBackupUseCase().fold(
+                onSuccess = { TransferMessage.DriveImportCompleted },
+                onFailure = { TransferMessage.DriveImportFailed },
+            )
+
+            events.send(UrlOpenerEvent.ShowTransferMessage(message))
+        }
+    }
+
+    fun onJsonImported(json: String, successMessage: TransferMessage, failureMessage: TransferMessage) {
+        viewModelScope.launch {
+            runCatching {
+                importLinkGroupsJsonUseCase(json)
+            }.onSuccess {
+                events.send(UrlOpenerEvent.ShowTransferMessage(successMessage))
+            }.onFailure {
+                events.send(UrlOpenerEvent.ShowTransferMessage(failureMessage))
+            }
+        }
+    }
+
+    fun onTransferFinished(message: TransferMessage) {
+        viewModelScope.launch {
+            events.send(UrlOpenerEvent.ShowTransferMessage(message))
         }
     }
 
@@ -267,5 +332,9 @@ class UrlOpenerViewModel(
                 events.send(UrlOpenerEvent.OpenUrlFailed)
             }
         }
+    }
+
+    private companion object {
+        const val EXPORT_FILE_NAME = "url-opener-data.json"
     }
 }

@@ -46,6 +46,10 @@ class UrlOpenerScreenTest {
                     onOpenConfirmationChanged = {
                         state = state.copy(shouldAskOpenConfirmation = it)
                     },
+                    onExportJsonClick = {},
+                    onImportJsonClick = {},
+                    onSyncToDriveClick = {},
+                    onSyncFromDriveClick = {},
                     onAddGroupClick = {},
                     onEditGroupClick = {},
                     onRequestDeleteGroup = {},

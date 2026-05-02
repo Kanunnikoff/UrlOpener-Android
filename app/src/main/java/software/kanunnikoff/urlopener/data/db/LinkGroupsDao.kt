@@ -20,7 +20,7 @@ interface LinkGroupsDao {
     fun observeGroups(): Flow<List<GroupWithLinks>>
 
     @Insert
-    suspend fun insertGroup(group: LinkGroupEntity)
+    suspend fun insertGroup(group: LinkGroupEntity): Long
 
     @Query(
         """
@@ -36,6 +36,26 @@ interface LinkGroupsDao {
 
     @Insert
     suspend fun insertLink(link: SavedLinkEntity)
+
+    @Query("DELETE FROM saved_links")
+    suspend fun deleteAllLinks()
+
+    @Query("DELETE FROM link_groups")
+    suspend fun deleteAllGroups()
+
+    @Transaction
+    suspend fun replaceGroups(groups: List<GroupWithLinks>) {
+        deleteAllLinks()
+        deleteAllGroups()
+
+        groups.forEach { groupWithLinks ->
+            val groupId = insertGroup(groupWithLinks.group.copy(id = 0L))
+
+            groupWithLinks.links.forEach { link ->
+                insertLink(link.copy(id = 0L, groupId = groupId))
+            }
+        }
+    }
 
     @Query(
         """

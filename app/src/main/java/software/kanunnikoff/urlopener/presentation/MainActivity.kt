@@ -12,11 +12,17 @@ import software.kanunnikoff.urlopener.BuildConfig
 import software.kanunnikoff.urlopener.data.AndroidLinkGroupsRepository
 import software.kanunnikoff.urlopener.data.AndroidSettingsRepository
 import software.kanunnikoff.urlopener.data.AndroidUrlOpenerRepository
+import software.kanunnikoff.urlopener.data.GoogleDriveSyncRepository
 import software.kanunnikoff.urlopener.data.db.UrlOpenerDatabase
+import software.kanunnikoff.urlopener.domain.service.LinkGroupsJsonCodec
 import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportLinkGroupsJsonUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportLinkGroupsJsonUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
@@ -42,6 +48,12 @@ class MainActivity : ComponentActivity() {
         ).build()
 
         val linkGroupsRepository = AndroidLinkGroupsRepository(dao = database.linkGroupsDao())
+        val linkGroupsJsonCodec = LinkGroupsJsonCodec()
+        val syncRepository = GoogleDriveSyncRepository(
+            context = applicationContext,
+            linkGroupsRepository = linkGroupsRepository,
+            codec = linkGroupsJsonCodec,
+        )
 
         UrlOpenerViewModelFactory(
             openUrlUseCase = OpenUrlUseCase(
@@ -57,6 +69,13 @@ class MainActivity : ComponentActivity() {
             addSavedLinkUseCase = AddSavedLinkUseCase(linkGroupsRepository),
             updateSavedLinkUseCase = UpdateSavedLinkUseCase(linkGroupsRepository),
             deleteSavedLinkUseCase = DeleteSavedLinkUseCase(linkGroupsRepository),
+            exportLinkGroupsJsonUseCase = ExportLinkGroupsJsonUseCase(linkGroupsJsonCodec),
+            importLinkGroupsJsonUseCase = ImportLinkGroupsJsonUseCase(
+                repository = linkGroupsRepository,
+                codec = linkGroupsJsonCodec,
+            ),
+            exportBackupUseCase = ExportBackupUseCase(syncRepository),
+            importBackupUseCase = ImportBackupUseCase(syncRepository),
         )
     }
 
@@ -82,6 +101,12 @@ class MainActivity : ComponentActivity() {
                     onOpenClick = viewModel::onOpenClick,
                     onDeleteConfirmationChanged = viewModel::onDeleteConfirmationChanged,
                     onOpenConfirmationChanged = viewModel::onOpenConfirmationChanged,
+                    onExportJsonClick = viewModel::onExportJsonClick,
+                    onImportJsonClick = viewModel::onImportJsonClick,
+                    onSyncToDriveClick = viewModel::onSyncToDriveClick,
+                    onSyncFromDriveClick = viewModel::onSyncFromDriveClick,
+                    onJsonImported = viewModel::onJsonImported,
+                    onTransferFinished = viewModel::onTransferFinished,
                     onAddGroupClick = viewModel::onAddGroupClick,
                     onEditGroupClick = viewModel::onEditGroupClick,
                     onRequestDeleteGroup = viewModel::onRequestDeleteGroup,

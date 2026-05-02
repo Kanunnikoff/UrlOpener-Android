@@ -5,14 +5,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FileOpen
+import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -21,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import software.kanunnikoff.urlopener.R
 
@@ -39,6 +47,10 @@ internal fun SettingsScreen(
     shouldAskOpenConfirmation: Boolean,
     onDeleteConfirmationChanged: (Boolean) -> Unit,
     onOpenConfirmationChanged: (Boolean) -> Unit,
+    onExportJsonClick: () -> Unit,
+    onImportJsonClick: () -> Unit,
+    onSyncToDriveClick: () -> Unit,
+    onSyncFromDriveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -63,6 +75,13 @@ internal fun SettingsScreen(
             checked = shouldAskOpenConfirmation,
             onCheckedChange = onOpenConfirmationChanged,
             icon = Icons.AutoMirrored.Outlined.OpenInNew,
+        )
+
+        SettingsDataActions(
+            onExportJsonClick = onExportJsonClick,
+            onImportJsonClick = onImportJsonClick,
+            onSyncToDriveClick = onSyncToDriveClick,
+            onSyncFromDriveClick = onSyncFromDriveClick,
         )
     }
 }
@@ -117,4 +136,130 @@ private fun SettingsSwitchRow(
             )
         }
     }
+}
+
+@Composable
+private fun SettingsDataActions(
+    onExportJsonClick: () -> Unit,
+    onImportJsonClick: () -> Unit,
+    onSyncToDriveClick: () -> Unit,
+    onSyncFromDriveClick: () -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SettingsActionPair(
+                title = stringResource(R.string.json_data_title),
+                primaryText = stringResource(R.string.export_json),
+                primaryIcon = Icons.Outlined.SaveAlt,
+                onPrimaryClick = onExportJsonClick,
+                secondaryText = stringResource(R.string.import_json),
+                secondaryIcon = Icons.Outlined.FileOpen,
+                onSecondaryClick = onImportJsonClick,
+            )
+
+            SettingsActionPair(
+                title = stringResource(R.string.google_drive_data_title),
+                primaryText = stringResource(R.string.sync_to_drive),
+                primaryIcon = Icons.Outlined.CloudUpload,
+                onPrimaryClick = onSyncToDriveClick,
+                secondaryText = stringResource(R.string.sync_from_drive),
+                secondaryIcon = Icons.Outlined.CloudDownload,
+                onSecondaryClick = onSyncFromDriveClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionPair(
+    title: String,
+    primaryText: String,
+    primaryIcon: ImageVector,
+    onPrimaryClick: () -> Unit,
+    secondaryText: String,
+    secondaryIcon: ImageVector,
+    onSecondaryClick: () -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge,
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CompactSettingsButton(
+                text = primaryText,
+                icon = primaryIcon,
+                onClick = onPrimaryClick,
+                modifier = Modifier.weight(1f),
+            )
+
+            CompactSettingsButton(
+                text = secondaryText,
+                icon = secondaryIcon,
+                onClick = onSecondaryClick,
+                modifier = Modifier.weight(1f),
+                isSecondary = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactSettingsButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isSecondary: Boolean = false,
+) {
+    val buttonModifier = modifier.heightIn(min = 46.dp)
+
+    if (isSecondary) {
+        OutlinedButton(
+            onClick = onClick,
+            modifier = buttonModifier,
+        ) {
+            CompactButtonContent(text = text, icon = icon)
+        }
+    } else {
+        ElevatedButton(
+            onClick = onClick,
+            modifier = buttonModifier,
+        ) {
+            CompactButtonContent(text = text, icon = icon)
+        }
+    }
+}
+
+@Composable
+private fun CompactButtonContent(
+    text: String,
+    icon: ImageVector,
+) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+    )
+
+    Text(
+        text = text,
+        modifier = Modifier.padding(start = 8.dp),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.labelLarge,
+    )
 }

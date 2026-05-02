@@ -21,4 +21,6 @@ interface LinkGroupsRepository {
     suspend fun updateLink(groupId: Long, linkId: Long, name: String, url: String)
 
     suspend fun deleteLink(groupId: Long, linkId: Long)
+
+    suspend fun replaceGroups(groups: List<LinkGroup>)
 }

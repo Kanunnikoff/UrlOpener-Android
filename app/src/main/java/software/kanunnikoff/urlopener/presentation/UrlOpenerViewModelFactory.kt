@@ -6,6 +6,10 @@ import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportLinkGroupsJsonUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportLinkGroupsJsonUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
@@ -32,6 +36,10 @@ class UrlOpenerViewModelFactory(
     private val addSavedLinkUseCase: AddSavedLinkUseCase,
     private val updateSavedLinkUseCase: UpdateSavedLinkUseCase,
     private val deleteSavedLinkUseCase: DeleteSavedLinkUseCase,
+    private val exportLinkGroupsJsonUseCase: ExportLinkGroupsJsonUseCase,
+    private val importLinkGroupsJsonUseCase: ImportLinkGroupsJsonUseCase,
+    private val exportBackupUseCase: ExportBackupUseCase,
+    private val importBackupUseCase: ImportBackupUseCase,
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -48,6 +56,10 @@ class UrlOpenerViewModelFactory(
             addSavedLinkUseCase = addSavedLinkUseCase,
             updateSavedLinkUseCase = updateSavedLinkUseCase,
             deleteSavedLinkUseCase = deleteSavedLinkUseCase,
+            exportLinkGroupsJsonUseCase = exportLinkGroupsJsonUseCase,
+            importLinkGroupsJsonUseCase = importLinkGroupsJsonUseCase,
+            exportBackupUseCase = exportBackupUseCase,
+            importBackupUseCase = importBackupUseCase,
         ) as T
     }
 }

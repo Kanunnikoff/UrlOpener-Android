@@ -18,11 +18,17 @@ import software.kanunnikoff.urlopener.domain.model.LinkGroup
 import software.kanunnikoff.urlopener.domain.model.SavedLink
 import software.kanunnikoff.urlopener.domain.repository.LinkGroupsRepository
 import software.kanunnikoff.urlopener.domain.repository.SettingsRepository
+import software.kanunnikoff.urlopener.domain.repository.SyncRepository
 import software.kanunnikoff.urlopener.domain.repository.UrlOpenerRepository
+import software.kanunnikoff.urlopener.domain.service.LinkGroupsJsonCodec
 import software.kanunnikoff.urlopener.domain.usecase.AddLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.AddSavedLinkUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteLinkGroupUseCase
 import software.kanunnikoff.urlopener.domain.usecase.DeleteSavedLinkUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ExportLinkGroupsJsonUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportBackupUseCase
+import software.kanunnikoff.urlopener.domain.usecase.ImportLinkGroupsJsonUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveLinkGroupsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.ObserveSettingsUseCase
 import software.kanunnikoff.urlopener.domain.usecase.OpenUrlUseCase
@@ -38,6 +44,7 @@ class UrlOpenerViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private lateinit var groupsRepository: FakeLinkGroupsRepository
     private lateinit var settingsRepository: FakeSettingsRepository
+    private lateinit var syncRepository: FakeSyncRepository
     private lateinit var urlOpenerRepository: FakeUrlOpenerRepository
     private lateinit var viewModel: UrlOpenerViewModel
 
@@ -46,7 +53,10 @@ class UrlOpenerViewModelTest {
         Dispatchers.setMain(dispatcher)
         groupsRepository = FakeLinkGroupsRepository()
         settingsRepository = FakeSettingsRepository()
+        syncRepository = FakeSyncRepository()
         urlOpenerRepository = FakeUrlOpenerRepository()
+        val jsonCodec = LinkGroupsJsonCodec()
+
         viewModel = UrlOpenerViewModel(
             openUrlUseCase = OpenUrlUseCase(urlOpenerRepository),
             observeSettingsUseCase = ObserveSettingsUseCase(settingsRepository),
@@ -59,6 +69,10 @@ class UrlOpenerViewModelTest {
             addSavedLinkUseCase = AddSavedLinkUseCase(groupsRepository),
             updateSavedLinkUseCase = UpdateSavedLinkUseCase(groupsRepository),
             deleteSavedLinkUseCase = DeleteSavedLinkUseCase(groupsRepository),
+            exportLinkGroupsJsonUseCase = ExportLinkGroupsJsonUseCase(jsonCodec),
+            importLinkGroupsJsonUseCase = ImportLinkGroupsJsonUseCase(groupsRepository, jsonCodec),
+            exportBackupUseCase = ExportBackupUseCase(syncRepository),
+            importBackupUseCase = ImportBackupUseCase(syncRepository),
         )
     }
 
@@ -137,6 +151,12 @@ class UrlOpenerViewModelTest {
         override suspend fun updateLink(groupId: Long, linkId: Long, name: String, url: String) = Unit
 
         override suspend fun deleteLink(groupId: Long, linkId: Long) = Unit
+
+        override suspend fun replaceGroups(groups: List<LinkGroup>) {
+            this.groups.value = groups.mapIndexed { index, group ->
+                group.copy(id = index + 1L)
+            }
+        }
     }
 
     private class FakeSettingsRepository : SettingsRepository {
@@ -148,6 +168,18 @@ class UrlOpenerViewModelTest {
 
         override suspend fun setShouldAskOpenConfirmation(shouldAsk: Boolean) {
             settings.value = settings.value.copy(shouldAskOpenConfirmation = shouldAsk)
+        }
+
+    }
+
+    private class FakeSyncRepository : SyncRepository {
+
+        override suspend fun exportToDrive(): Result<Unit> {
+            return Result.success(Unit)
+        }
+
+        override suspend fun importFromDrive(): Result<Unit> {
+            return Result.success(Unit)
         }
     }
 

@@ -79,6 +79,32 @@ class AndroidLinkGroupsRepository(
         dao.deleteLink(groupId, linkId)
     }
 
+    override suspend fun replaceGroups(groups: List<LinkGroup>) {
+        dao.replaceGroups(groups.map { it.toDatabase() })
+    }
+
+    private fun LinkGroup.toDatabase(): GroupWithLinks {
+        return GroupWithLinks(
+            group = LinkGroupEntity(
+                id = id,
+                name = name,
+                description = description,
+                createdAt = createdAt,
+                updatedAt = updatedAt,
+            ),
+            links = links.map { link ->
+                SavedLinkEntity(
+                    id = link.id,
+                    groupId = id,
+                    name = link.name,
+                    url = link.url,
+                    createdAt = link.createdAt,
+                    updatedAt = link.updatedAt,
+                )
+            },
+        )
+    }
+
     private fun GroupWithLinks.toDomain(): LinkGroup {
         // Keep the mapping explicit because the database relation model and the UI model have
         // different ownership: Room describes rows, while the domain model describes screen data.
