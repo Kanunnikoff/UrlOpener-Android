@@ -120,6 +120,13 @@ internal fun LinkGroupCard(
                             )
                         }
                     }
+                    IconButton(onClick = { onAddLinkClick(group.id) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = stringResource(R.string.add_link),
+                            tint = accentColor,
+                        )
+                    }
                     Surface(
                         color = accentColor.copy(alpha = 0.16f),
                         contentColor = accentColor,
@@ -142,13 +149,6 @@ internal fun LinkGroupCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 6.dp),
                     )
-                    IconButton(onClick = { onAddLinkClick(group.id) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Add,
-                            contentDescription = stringResource(R.string.add_link),
-                            tint = accentColor,
-                        )
-                    }
                 }
 
                 if (isExpanded) {
