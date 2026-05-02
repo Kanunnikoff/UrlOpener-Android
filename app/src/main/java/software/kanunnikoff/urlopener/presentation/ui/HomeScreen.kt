@@ -1,5 +1,6 @@
 package software.kanunnikoff.urlopener.presentation.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,6 +72,7 @@ import software.kanunnikoff.urlopener.presentation.UrlOpenerState
  * @param contentPadding Padding provided by the root scaffold.
  * @param modifier Optional modifier for the tab content.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun HomeScreen(
     state: UrlOpenerState,
@@ -96,34 +98,44 @@ internal fun HomeScreen(
             .fillMaxSize()
             .consumeWindowInsets(contentPadding)
             .padding(listPadding),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ScreenTitle(text = stringResource(R.string.app_name))
 
-        UrlInputBlock(
-            url = state.url,
-            onUrlChanged = onUrlChanged,
-            onClearClick = onClearClick,
-            onOpenClick = onOpenClick,
-            onSaveEnteredLinkClick = onSaveEnteredLinkClick,
-        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item(key = "url_input") {
+                UrlInputBlock(
+                    url = state.url,
+                    onUrlChanged = onUrlChanged,
+                    onClearClick = onClearClick,
+                    onOpenClick = onOpenClick,
+                    onSaveEnteredLinkClick = onSaveEnteredLinkClick,
+                )
+            }
 
-        SavedLinksHeader(onAddGroupClick = onAddGroupClick)
+            stickyHeader(key = "saved_links_header") {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    SavedLinksHeader(onAddGroupClick = onAddGroupClick)
+                }
+            }
 
-        if (state.groups.isEmpty()) {
-            EmptyGroupsContent(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            if (state.groups.isEmpty()) {
+                item(key = "empty_groups") {
+                    EmptyGroupsContent(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillParentMaxHeight(0.82f),
+                    )
+                }
+            } else {
                 items(
                     items = state.groups,
                     key = { it.id },
